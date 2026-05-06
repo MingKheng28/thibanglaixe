@@ -16,13 +16,47 @@ public class WrongQuestionService : IWrongQuestionService
         _repository = repository;
     }
 
+    public async Task<ApiResponse<WrongPracticeSessionDto>> CreatePracticeSessionAsync(long userId, CreateWrongPracticeSessionRequestDto request)
+    {
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
+
+        var questionIds = request.QuestionIds
+            .Distinct()
+            .ToList();
+
+        var stats = await _repository.GetWrongQuestionStatsAsync(student.id);
+        var handledQuestionIds = await _repository.GetHandledQuestionIdsAsync(userId);
+
+        var unresolvedQuestionIds = stats
+            .Where(x => !handledQuestionIds.Contains(x.QuestionId))
+            .Select(x => x.QuestionId)
+            .ToHashSet();
+
+        var invalidQuestionIds = questionIds
+            .Where(questionId => !unresolvedQuestionIds.Contains(questionId))
+            .ToList();
+
+        if (invalidQuestionIds.Count != 0)
+        {
+            throw new BusinessRuleAppException("Some questions are not in the unresolved wrong-question pool", "INVALID_WRONG_QUESTION_SELECTION");
+        }
+
+        var questions = await _repository.GetQuestionsByIdsAsync(questionIds);
+        if (questions.Count != questionIds.Count)
+        {
+            throw new NotFoundAppException("One or more questions were not found or are not approved");
+        }
+
+        var orderedQuestions = questionIds
+            .Join(questions, id => id, question => question.id, (_, question) => question)
+            .ToList();
+
+        return await CreatePracticeSessionInternalAsync(userId, student.id, orderedQuestions);
+    }
+
     public async Task<ApiResponse<List<WrongQuestionDto>>> GetListAsync(long userId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var stats = await _repository.GetWrongQuestionStatsAsync(student.id);
         var handledQuestionIds = await _repository.GetHandledQuestionIdsAsync(userId);
@@ -52,11 +86,7 @@ public class WrongQuestionService : IWrongQuestionService
 
     public async Task<ApiResponse<WrongQuestionSummaryDto>> GetSummaryAsync(long userId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var stats = await _repository.GetWrongQuestionStatsAsync(student.id);
         var totalWrongQuestions = stats.Count;
@@ -82,11 +112,7 @@ public class WrongQuestionService : IWrongQuestionService
 
     public async Task<ApiResponse<WrongPracticeSessionDto>> StartPracticeAsync(long userId, StartWrongPracticeRequestDto request)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var stats = await _repository.GetWrongQuestionStatsAsync(student.id);
         var handledQuestionIds = await _repository.GetHandledQuestionIdsAsync(userId);
@@ -107,11 +133,18 @@ public class WrongQuestionService : IWrongQuestionService
             .Take(request.Size)
             .ToList();
 
+        return await CreatePracticeSessionInternalAsync(userId, student.id, selectedQuestions);
+    }
+
+    private async Task<ApiResponse<WrongPracticeSessionDto>> CreatePracticeSessionInternalAsync(long userId, long studentId, List<cau_hoi> selectedQuestions)
+    {
+        var now = DateTime.UtcNow;
+
         var session = new phien_on_tap
         {
-            hoc_vien_id = student.id,
-            ngay_tao = DateTime.UtcNow,
-            thoi_gian_bat_dau = DateTime.UtcNow,
+            hoc_vien_id = studentId,
+            ngay_tao = now,
+            thoi_gian_bat_dau = now,
             tong_so_cau = selectedQuestions.Count,
             so_cau_dung = 0,
             diem = 0,
@@ -131,13 +164,24 @@ public class WrongQuestionService : IWrongQuestionService
             .ToList();
 
         await _repository.AddPracticeSessionQuestionsAsync(sessionQuestions);
+
+        await _repository.AddSystemLogAsync(new nhat_ky_he_thong
+        {
+            nguoi_dung_id = userId,
+            hanh_dong = "wrong_practice_started",
+            bang_tac_dong = "phien_on_tap",
+            khoa_chinh_du_lieu = session.id,
+            noi_dung = $"Started wrong practice session with {selectedQuestions.Count} questions",
+            created_at = now
+        });
+
         await _repository.SaveChangesAsync();
 
         var result = new WrongPracticeSessionDto
         {
             SessionId = session.id,
             TotalQuestions = selectedQuestions.Count,
-            StartedAt = session.thoi_gian_bat_dau ?? DateTime.UtcNow,
+            StartedAt = session.thoi_gian_bat_dau ?? now,
             Status = session.trang_thai,
             QuestionIds = selectedQuestions.Select(x => x.id).ToList()
         };
@@ -187,11 +231,7 @@ public class WrongQuestionService : IWrongQuestionService
 
     private async Task EnsureQuestionIsInWrongPoolAsync(long userId, long questionId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var stats = await _repository.GetWrongQuestionStatsAsync(student.id);
         var existsInWrongPool = stats.Any(x => x.QuestionId == questionId);

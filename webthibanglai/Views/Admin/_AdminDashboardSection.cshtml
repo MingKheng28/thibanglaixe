@@ -1,0 +1,26 @@
+@model webthibanglai.Models.AdminDashboardViewModel
+@using System.Globalization
+@{
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    string Money(decimal value) => value.ToString("N0", culture) + "đ";
+}
+<section id="dashboard" class="admin-section active">
+    <div class="page-header"><div><h1>Bảng điều khiển quản trị</h1><p>Toàn bộ nhóm chức năng admin được chuẩn hóa từ template và dùng API backend hiện có.</p></div></div>
+    <div class="stats-grid">
+        <div class="stat-card"><span class="stat-icon">👥</span><div class="stat-label">Người dùng</div><div id="stat-users" class="stat-value">@Model.TotalUsers.ToString("N0", culture)</div><div class="stat-change">@Model.ActiveUsers.ToString("N0", culture) tài khoản hoạt động</div></div>
+        <div class="stat-card blue"><span class="stat-icon">🎓</span><div class="stat-label">Học viên</div><div id="stat-students" class="stat-value">0</div><div class="stat-change">Hồ sơ học viên trong hệ thống</div></div>
+        <div class="stat-card green"><span class="stat-icon">📚</span><div class="stat-label">Khóa học</div><div id="stat-courses" class="stat-value">@Model.TotalCourses.ToString("N0", culture)</div><div class="stat-change">@Model.OpenCourses khóa đang mở</div></div>
+        <div class="stat-card red"><span class="stat-icon">💰</span><div class="stat-label">Doanh thu</div><div id="stat-revenue" class="stat-value">@Money(Model.TotalReceiptAmount)</div><div class="stat-change"><span id="stat-receipts">@Model.PendingReceipts</span> phiếu thu chờ xử lý</div></div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card blue"><span class="stat-icon">❓</span><div class="stat-label">Câu hỏi</div><div id="stat-questions" class="stat-value">@Model.TotalQuestions</div><div class="stat-change">@Model.CriticalQuestions câu điểm liệt</div></div>
+        <div class="stat-card green"><span class="stat-icon">🧾</span><div class="stat-label">Đề thi</div><div id="stat-exams" class="stat-value">@Model.TotalExams</div><div class="stat-change">Đề sát hạch và luyện tập</div></div>
+        <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-label">Kết quả thi</div><div id="stat-results" class="stat-value">0</div><div class="stat-change">Kết quả đã ghi nhận</div></div>
+        <div class="stat-card green"><span class="stat-icon">🪪</span><div class="stat-label">GPLX đã cấp</div><div id="stat-certificates" class="stat-value">0</div><div class="stat-change">Chứng chỉ/giấy phép</div></div>
+    </div>
+    <div class="module-grid">
+        <div class="module-card"><div class="module-name">Đào tạo</div><div class="module-meta">Học viên, giáo viên, khóa học, lớp học, lịch học được gom nhóm rõ ràng.</div></div>
+        <div class="module-card"><div class="module-name">Thi cử</div><div class="module-meta">Chủ đề câu hỏi, ngân hàng câu hỏi, đề thi, kỳ thi và kết quả thi.</div></div>
+        <div class="module-card"><div class="module-name">Vận hành</div><div class="module-meta">Thanh toán, cấp GPLX, phương tiện và quản trị hệ thống.</div></div>
+    </div>
+</section>

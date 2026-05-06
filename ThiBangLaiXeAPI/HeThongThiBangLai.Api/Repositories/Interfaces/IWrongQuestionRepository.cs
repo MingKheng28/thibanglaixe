@@ -5,7 +5,7 @@ namespace HeThongThiBangLai.Api.Repositories.Interfaces;
 
 public interface IWrongQuestionRepository
 {
-    Task<hoc_vien?> GetStudentByUserIdAsync(long userId);
+    Task<hoc_vien> GetOrCreateStudentByUserIdAsync(long userId);
     Task<List<WrongQuestionStat>> GetWrongQuestionStatsAsync(long hocVienId);
     Task<List<cau_hoi>> GetQuestionsByIdsAsync(IEnumerable<long> questionIds);
     Task<HashSet<long>> GetHandledQuestionIdsAsync(long userId);

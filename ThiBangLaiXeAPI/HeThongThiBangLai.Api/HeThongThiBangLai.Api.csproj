@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TempObj\**" />
+    <Compile Remove="TempBin\**" />
+    <Content Remove="TempObj\**" />
+    <Content Remove="TempBin\**" />
+    <EmbeddedResource Remove="TempObj\**" />
+    <EmbeddedResource Remove="TempBin\**" />
+    <None Remove="TempObj\**" />
+    <None Remove="TempBin\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />

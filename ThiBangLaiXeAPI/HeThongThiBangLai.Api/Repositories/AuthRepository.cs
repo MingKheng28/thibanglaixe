@@ -26,6 +26,12 @@ public class AuthRepository : IAuthRepository
             .FirstOrDefaultAsync(x => x.email == email);
     }
 
+    public async Task<nguoi_dung?> FindUserByPhoneNumberAsync(string phoneNumber)
+    {
+        return await _dbContext.nguoi_dungs
+            .FirstOrDefaultAsync(x => x.so_dien_thoai == phoneNumber);
+    }
+
     public async Task<nguoi_dung?> FindUserByIdAsync(long userId)
     {
         return await _dbContext.nguoi_dungs
@@ -50,6 +56,12 @@ public class AuthRepository : IAuthRepository
     {
         return await _dbContext.hoc_viens
             .FirstOrDefaultAsync(x => x.nguoi_dung_id == userId);
+    }
+
+    public async Task<hoc_vien?> FindHocVienByCccdAsync(string cccd)
+    {
+        return await _dbContext.hoc_viens
+            .FirstOrDefaultAsync(x => x.cccd == cccd);
     }
 
     public async Task AddUserAsync(nguoi_dung user)

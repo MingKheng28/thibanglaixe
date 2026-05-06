@@ -7,6 +7,7 @@ public interface IWrongQuestionService
 {
     Task<ApiResponse<List<WrongQuestionDto>>> GetListAsync(long userId);
     Task<ApiResponse<WrongQuestionSummaryDto>> GetSummaryAsync(long userId);
+    Task<ApiResponse<WrongPracticeSessionDto>> CreatePracticeSessionAsync(long userId, CreateWrongPracticeSessionRequestDto request);
     Task<ApiResponse<WrongPracticeSessionDto>> StartPracticeAsync(long userId, StartWrongPracticeRequestDto request);
     Task<ApiResponse<object>> ResolveAsync(long userId, long questionId);
     Task<ApiResponse<object>> DeleteAsync(long userId, long questionId);

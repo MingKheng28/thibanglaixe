@@ -6,7 +6,9 @@ namespace HeThongThiBangLai.Api.Services.Interfaces;
 public interface ISampleExamService
 {
     Task<ApiResponse<PagedList<SampleExamDto>>> GetListAsync(int page = 1, int pageSize = 20, string? search = null);
+    Task<ApiResponse<PagedList<SampleExamDto>>> GetPublishedListAsync(int page = 1, int pageSize = 20, string? search = null);
     Task<ApiResponse<SampleExamDto>> GetByIdAsync(long id);
+    Task<ApiResponse<SampleExamDto>> GetPublishedByIdAsync(long id);
     Task<ApiResponse<SampleExamDto>> CreateAsync(CreateSampleExamRequestDto request);
     Task<ApiResponse<SampleExamDto>> UpdateAsync(long id, UpdateSampleExamRequestDto request);
     Task<ApiResponse<SampleExamDto>> AssignQuestionsAsync(long id, AssignSampleExamQuestionsRequestDto request);

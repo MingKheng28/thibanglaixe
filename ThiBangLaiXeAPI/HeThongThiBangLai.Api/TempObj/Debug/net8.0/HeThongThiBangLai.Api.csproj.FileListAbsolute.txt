@@ -1,0 +1,9 @@
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.csproj.AssemblyReference.cache
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\rpswa.dswa.cache.json
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.GeneratedMSBuildEditorConfig.editorconfig
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.AssemblyInfoInputs.cache
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.AssemblyInfo.cs
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.csproj.CoreCompileInputs.cache
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.MvcApplicationPartsAssemblyInfo.cs
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.MvcApplicationPartsAssemblyInfo.cache
+d:\full sờ tắc\ThiBangLaiXeAPI\HeThongThiBangLai.Api\TempObj\Debug\net8.0\HeThongThiBangLai.Api.sourcelink.json

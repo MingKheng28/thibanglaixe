@@ -7,7 +7,9 @@ public partial class bai_thi
 {
     public long id { get; set; }
 
-    public long hoc_vien_id { get; set; }
+    public long? hoc_vien_id { get; set; }
+
+    public long? nguoi_dung_id { get; set; }
 
     public long de_thi_id { get; set; }
 
@@ -33,7 +35,9 @@ public partial class bai_thi
 
     public virtual de_thi de_thi { get; set; } = null!;
 
-    public virtual hoc_vien hoc_vien { get; set; } = null!;
+    public virtual hoc_vien? hoc_vien { get; set; }
+
+    public virtual nguoi_dung? nguoi_dung { get; set; }
 
     public virtual exam_results? exam_result { get; set; }
 

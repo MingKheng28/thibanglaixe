@@ -9,4 +9,5 @@ public class QuestionDto
     public string? Level { get; set; }
     public bool IsCritical { get; set; }
     public string Status { get; set; } = string.Empty;
+    public string? Explanation { get; set; }
 }

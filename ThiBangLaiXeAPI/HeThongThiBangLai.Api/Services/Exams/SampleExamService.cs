@@ -28,6 +28,15 @@ public class SampleExamService : ISampleExamService
         return ApiResponseFactory.SuccessPaged(pagedDtos, "Sample exams retrieved successfully");
     }
 
+    public async Task<ApiResponse<PagedList<SampleExamDto>>> GetPublishedListAsync(int page = 1, int pageSize = 20, string? search = null)
+    {
+        var pagedExams = await _repository.GetPublishedPagedAsync(page, pageSize, search);
+        var dtos = _mapper.Map<List<SampleExamDto>>(pagedExams.Items);
+
+        var pagedDtos = new PagedList<SampleExamDto>(dtos, pagedExams.TotalCount, page, pageSize);
+        return ApiResponseFactory.SuccessPaged(pagedDtos, "Published sample exams retrieved successfully");
+    }
+
     public async Task<ApiResponse<SampleExamDto>> GetByIdAsync(long id)
     {
         var exam = await _repository.GetByIdAsync(id);
@@ -38,6 +47,18 @@ public class SampleExamService : ISampleExamService
 
         var dto = _mapper.Map<SampleExamDto>(exam);
         return ApiResponseFactory.Success(dto, "Sample exam retrieved successfully");
+    }
+
+    public async Task<ApiResponse<SampleExamDto>> GetPublishedByIdAsync(long id)
+    {
+        var exam = await _repository.GetPublishedByIdAsync(id);
+        if (exam == null)
+        {
+            throw new NotFoundAppException("Published sample exam not found");
+        }
+
+        var dto = _mapper.Map<SampleExamDto>(exam);
+        return ApiResponseFactory.Success(dto, "Published sample exam retrieved successfully");
     }
 
     public async Task<ApiResponse<SampleExamDto>> CreateAsync(CreateSampleExamRequestDto request)

@@ -11,6 +11,8 @@ public partial class cau_hoi
 
     public string noi_dung { get; set; } = null!;
 
+    public string? giai_thich_dap_an { get; set; }
+
     public string loai_cau_hoi { get; set; } = null!;
 
     public string? muc_do { get; set; }

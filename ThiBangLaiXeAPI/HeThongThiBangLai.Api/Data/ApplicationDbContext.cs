@@ -110,6 +110,8 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasIndex(e => e.hoc_vien_id, "ix_bai_thi_hoc_vien_id");
 
+            entity.HasIndex(e => e.nguoi_dung_id, "ix_bai_thi_nguoi_dung_id");
+
             entity.Property(e => e.diem).HasColumnType("decimal(5, 2)");
             entity.Property(e => e.ket_qua)
                 .HasMaxLength(20)
@@ -131,8 +133,11 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasOne(d => d.hoc_vien).WithMany(p => p.bai_this)
                 .HasForeignKey(d => d.hoc_vien_id)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_bai_thi_hoc_vien");
+
+            entity.HasOne(d => d.nguoi_dung).WithMany(p => p.bai_this)
+                .HasForeignKey(d => d.nguoi_dung_id)
+                .HasConstraintName("fk_bai_thi_nguoi_dung");
         });
 
         modelBuilder.Entity<buoi_hoc>(entity =>
@@ -183,6 +188,7 @@ public partial class ApplicationDbContext : DbContext
 
             entity.HasIndex(e => e.chu_de_id, "ix_cau_hoi_chu_de_id");
 
+            entity.Property(e => e.giai_thich_dap_an).HasMaxLength(2000);
             entity.Property(e => e.loai_cau_hoi)
                 .HasMaxLength(30)
                 .IsUnicode(false)
@@ -346,6 +352,7 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.ma_de_thi)
                 .HasMaxLength(30)
                 .IsUnicode(false);
+            entity.Property(e => e.loai_de_thi).HasMaxLength(50);
             entity.Property(e => e.ngay_tao).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.ten_de_thi).HasMaxLength(150);
             entity.Property(e => e.trang_thai)

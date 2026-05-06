@@ -6,10 +6,12 @@ public interface IAuthRepository
 {
     Task<nguoi_dung?> FindUserByUsernameAsync(string username);
     Task<nguoi_dung?> FindUserByEmailAsync(string email);
+    Task<nguoi_dung?> FindUserByPhoneNumberAsync(string phoneNumber);
     Task<nguoi_dung?> FindUserByIdAsync(long userId);
     Task<List<vai_tro>> GetRolesByUserIdAsync(long userId);
     Task<vai_tro?> FindRoleByCodeAsync(string roleCode);
     Task<hoc_vien?> FindHocVienByUserIdAsync(long userId);
+    Task<hoc_vien?> FindHocVienByCccdAsync(string cccd);
 
     Task AddUserAsync(nguoi_dung user);
     Task AddUserRoleAsync(nguoi_dung_vai_tro userRole);

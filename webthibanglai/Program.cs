@@ -24,6 +24,7 @@ builder.Services.AddScoped<IExamApiService, ExamApiService>();
 builder.Services.AddScoped<IStudentDashboardApiService, StudentDashboardApiService>();
 builder.Services.AddScoped<IPracticeApiService, PracticeApiService>();
 builder.Services.AddScoped<ICourseApiService, CourseApiService>();
+builder.Services.AddScoped<IAdminApiService, AdminApiService>();
 
 // Đăng ký AI Service
 builder.Services.AddHttpClient<IAIService, GeminiService>();

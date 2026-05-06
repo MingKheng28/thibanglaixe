@@ -1,0 +1,36 @@
+@model webthibanglai.Models.AdminDashboardViewModel
+@{
+    Layout = null;
+    var token = ViewBag.AdminAccessToken as string ?? string.Empty;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="admin-access-token" content="@token" />
+    <title>Dashboard · Tổng quan · Admin GPLX Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/admin/admin-unified.css" />
+</head>
+<body class="admin-shell" data-page="admin-unified">
+<partial name="_AdminSidebar" model="Model" />
+<div class="main">
+<partial name="_AdminHeader" />
+<main class="content">
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert">⚠️ @Model.ErrorMessage</div>
+}
+<partial name="_AdminDashboardSection" model="Model" />
+<partial name="_AdminTrainingSections" />
+<partial name="_AdminExamSections" />
+<partial name="_AdminOperationSections" />
+</main>
+</div>
+<div class="admin-toast"></div>
+<script src="~/admin/admin-unified.js"></script>
+</body>
+</html>

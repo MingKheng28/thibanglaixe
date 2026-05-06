@@ -43,6 +43,19 @@ public class WrongQuestionsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("practice-sessions")]
+    [ProducesResponseType(typeof(ApiResponse<WrongPracticeSessionDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> CreatePracticeSession([FromBody] CreateWrongPracticeSessionRequestDto request)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _service.CreatePracticeSessionAsync(userId, request);
+        return StatusCode(StatusCodes.Status201Created, result);
+    }
+
     [HttpPost("start-practice")]
     [ProducesResponseType(typeof(ApiResponse<WrongPracticeSessionDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]

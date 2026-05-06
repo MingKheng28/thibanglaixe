@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using HeThongThiBangLai.Api.Common.Exceptions;
+using HeThongThiBangLai.Api.Common.Responses;
 using HeThongThiBangLai.Api.DTOs.Auth;
 using HeThongThiBangLai.Api.Models;
 using HeThongThiBangLai.Api.Repositories.Interfaces;
@@ -37,6 +39,7 @@ public class AuthService : IAuthService
     {
         var username = request.ten_dang_nhap.Trim();
         var email = request.email.Trim().ToLowerInvariant();
+        var phoneNumber = string.IsNullOrWhiteSpace(request.so_dien_thoai) ? null : request.so_dien_thoai.Trim();
 
         if (string.IsNullOrWhiteSpace(username))
             throw new InvalidOperationException("Tên đăng nhập không hợp lệ.");
@@ -47,20 +50,53 @@ public class AuthService : IAuthService
         if (string.IsNullOrWhiteSpace(request.mat_khau) || request.mat_khau.Length < 8)
             throw new InvalidOperationException("Mật khẩu phải có ít nhất 8 ký tự.");
 
+        var conflictErrors = new List<ApiError>();
+
         var existedByUsername = await _authRepository.FindUserByUsernameAsync(username);
         if (existedByUsername is not null)
-            throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
+        {
+            conflictErrors.Add(new ApiError
+            {
+                Code = "TRUNG_TEN_DANG_NHAP",
+                Field = "ten_dang_nhap",
+                Detail = "Tên đăng nhập đã tồn tại trong hệ thống."
+            });
+        }
 
         var existedByEmail = await _authRepository.FindUserByEmailAsync(email);
         if (existedByEmail is not null)
-            throw new InvalidOperationException("Email đã tồn tại.");
+        {
+            conflictErrors.Add(new ApiError
+            {
+                Code = "TRUNG_EMAIL",
+                Field = "email",
+                Detail = "Email đã tồn tại trong hệ thống."
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            var existedByPhoneNumber = await _authRepository.FindUserByPhoneNumberAsync(phoneNumber);
+            if (existedByPhoneNumber is not null)
+            {
+                conflictErrors.Add(new ApiError
+                {
+                    Code = "TRUNG_SO_DIEN_THOAI",
+                    Field = "so_dien_thoai",
+                    Detail = "Số điện thoại đã tồn tại trong hệ thống."
+                });
+            }
+        }
+
+        if (conflictErrors.Count > 0)
+            throw new ConflictAppException("Thông tin tài khoản đã tồn tại trong hệ thống.", "THONG_TIN_TAI_KHOAN_BI_TRUNG", conflictErrors);
 
         var now = DateTime.UtcNow;
         var user = new nguoi_dung
         {
             ten_dang_nhap = username,
             email = email,
-            so_dien_thoai = string.IsNullOrWhiteSpace(request.so_dien_thoai) ? null : request.so_dien_thoai.Trim(),
+            so_dien_thoai = phoneNumber,
             trang_thai = "hoat_dong",
             created_at = now,
             updated_at = now
@@ -80,26 +116,13 @@ public class AuthService : IAuthService
             vai_tro_id = defaultRole.id
         });
 
-        var hocVien = new hoc_vien
-        {
-            nguoi_dung_id = user.id,
-            ho_ten = string.IsNullOrWhiteSpace(request.ho_ten) ? username : request.ho_ten.Trim(),
-            ngay_sinh = request.ngay_sinh,
-            gioi_tinh = request.gioi_tinh,
-            cccd = request.cccd,
-            dia_chi = request.dia_chi,
-            anh_chan_dung = request.anh_chan_dung,
-            created_at = now
-        };
-        await _authRepository.AddHocVienProfileAsync(hocVien);
-
         await _authRepository.AddSystemLogAsync(new nhat_ky_he_thong
         {
             nguoi_dung_id = user.id,
             hanh_dong = "REGISTER",
             bang_tac_dong = "nguoi_dung",
             khoa_chinh_du_lieu = user.id,
-            noi_dung = $"Đăng ký tài khoản {username} và gán role {DefaultHocVienRoleCode}",
+            noi_dung = $"Đăng ký người dùng {username} và gán role {DefaultHocVienRoleCode}",
             ip_address = ipAddress,
             created_at = now
         });
@@ -114,6 +137,80 @@ public class AuthService : IAuthService
             role_mac_dinh = DefaultHocVienRoleCode,
             created_at = user.created_at
         };
+    }
+
+    public async Task<MeResponseDto> RegisterStudentProfileAsync(long userId, RegisterStudentProfileRequestDto request, string? ipAddress = null)
+    {
+        var user = await _authRepository.FindUserByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Không tìm thấy người dùng.");
+
+        var existedHocVien = await _authRepository.FindHocVienByUserIdAsync(userId);
+        if (existedHocVien is not null)
+        {
+            throw new ConflictAppException(
+                "Người dùng đã có hồ sơ học viên.",
+                "HOC_VIEN_DA_TON_TAI",
+                new List<ApiError>
+                {
+                    new()
+                    {
+                        Code = "HOC_VIEN_DA_TON_TAI",
+                        Field = "hoc_vien",
+                        Detail = "Người dùng đã có hồ sơ học viên."
+                    }
+                });
+        }
+
+        var cccd = string.IsNullOrWhiteSpace(request.cccd) ? null : request.cccd.Trim();
+        if (!string.IsNullOrWhiteSpace(cccd))
+        {
+            var existedByCccd = await _authRepository.FindHocVienByCccdAsync(cccd);
+            if (existedByCccd is not null)
+            {
+                throw new ConflictAppException(
+                    "CCCD đã tồn tại trong hệ thống.",
+                    "TRUNG_CCCD",
+                    new List<ApiError>
+                    {
+                        new()
+                        {
+                            Code = "TRUNG_CCCD",
+                            Field = "cccd",
+                            Detail = "CCCD đã tồn tại trong hệ thống."
+                        }
+                    });
+            }
+        }
+
+        var now = DateTime.UtcNow;
+        var hocVien = new hoc_vien
+        {
+            nguoi_dung_id = user.id,
+            ho_ten = request.ho_ten.Trim(),
+            ngay_sinh = request.ngay_sinh,
+            gioi_tinh = request.gioi_tinh,
+            cccd = cccd,
+            dia_chi = request.dia_chi,
+            anh_chan_dung = request.anh_chan_dung,
+            created_at = now
+        };
+
+        await _authRepository.AddHocVienProfileAsync(hocVien);
+        await _authRepository.AddSystemLogAsync(new nhat_ky_he_thong
+        {
+            nguoi_dung_id = user.id,
+            hanh_dong = "REGISTER_STUDENT_PROFILE",
+            bang_tac_dong = "hoc_vien",
+            khoa_chinh_du_lieu = hocVien.id,
+            noi_dung = $"Đăng ký hồ sơ học viên cho người dùng {user.ten_dang_nhap}",
+            ip_address = ipAddress,
+            created_at = now
+        });
+
+        await _authRepository.SaveChangesAsync();
+
+        var roles = await _authRepository.GetRolesByUserIdAsync(user.id);
+        return MapProfile(user, hocVien, roles.Select(x => x.ma_vai_tro).ToList());
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request, string? ipAddress = null)
@@ -333,25 +430,39 @@ public class AuthService : IAuthService
         await _authRepository.SaveChangesAsync();
     }
 
-    public async Task<MeResponseDto> GetCurrentUserProfileAsync(long userId)
+    public async Task<MeUserResponseDto> GetCurrentUserAsync(long userId)
     {
         var user = await _authRepository.FindUserByIdAsync(userId)
             ?? throw new KeyNotFoundException("Không tìm thấy người dùng.");
-
-        var hocVien = await _authRepository.FindHocVienByUserIdAsync(userId)
-            ?? throw new KeyNotFoundException("Không tìm thấy hồ sơ học viên.");
 
         var roles = await _authRepository.GetRolesByUserIdAsync(user.id);
-        return MapProfile(user, hocVien, roles.Select(x => x.ma_vai_tro).ToList());
+        return MapUser(user, roles.Select(x => x.ma_vai_tro).ToList());
     }
 
-    public async Task<MeResponseDto> UpdateCurrentUserProfileAsync(long userId, UpdateMeRequestDto request, string? ipAddress = null)
+    public async Task<MeStudentProfileResponseDto> GetCurrentStudentProfileAsync(long userId)
     {
         var user = await _authRepository.FindUserByIdAsync(userId)
             ?? throw new KeyNotFoundException("Không tìm thấy người dùng.");
 
         var hocVien = await _authRepository.FindHocVienByUserIdAsync(userId)
             ?? throw new KeyNotFoundException("Không tìm thấy hồ sơ học viên.");
+
+        return MapStudentProfile(user.id, hocVien);
+    }
+
+    public async Task<MeUserResponseDto> UpdateCurrentUserProfileAsync(long userId, UpdateMeRequestDto request, string? ipAddress = null)
+    {
+        var user = await _authRepository.FindUserByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Không tìm thấy người dùng.");
+
+        if (!string.IsNullOrWhiteSpace(request.ten_dang_nhap))
+        {
+            var normalizedUsername = request.ten_dang_nhap.Trim();
+            var existedByUsername = await _authRepository.FindUserByUsernameAsync(normalizedUsername);
+            if (existedByUsername is not null && existedByUsername.id != user.id)
+                throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
+            user.ten_dang_nhap = normalizedUsername;
+        }
 
         if (!string.IsNullOrWhiteSpace(request.email))
         {
@@ -363,29 +474,32 @@ public class AuthService : IAuthService
         }
 
         if (request.so_dien_thoai is not null)
-            user.so_dien_thoai = request.so_dien_thoai;
+        {
+            var normalizedPhoneNumber = string.IsNullOrWhiteSpace(request.so_dien_thoai)
+                ? null
+                : request.so_dien_thoai.Trim();
 
-        if (!string.IsNullOrWhiteSpace(request.ho_ten))
-            hocVien.ho_ten = request.ho_ten.Trim();
+            if (!string.IsNullOrWhiteSpace(normalizedPhoneNumber))
+            {
+                var existedByPhoneNumber = await _authRepository.FindUserByPhoneNumberAsync(normalizedPhoneNumber);
+                if (existedByPhoneNumber is not null && existedByPhoneNumber.id != user.id)
+                    throw new InvalidOperationException("Số điện thoại đã tồn tại.");
+            }
 
-        hocVien.ngay_sinh = request.ngay_sinh ?? hocVien.ngay_sinh;
-        hocVien.gioi_tinh = request.gioi_tinh ?? hocVien.gioi_tinh;
-        hocVien.cccd = request.cccd ?? hocVien.cccd;
-        hocVien.dia_chi = request.dia_chi ?? hocVien.dia_chi;
-        hocVien.anh_chan_dung = request.anh_chan_dung ?? hocVien.anh_chan_dung;
+            user.so_dien_thoai = normalizedPhoneNumber;
+        }
 
         user.updated_at = DateTime.UtcNow;
 
         await _authRepository.UpdateUserAsync(user);
-        await _authRepository.UpdateHocVienProfileAsync(hocVien);
 
         await _authRepository.AddSystemLogAsync(new nhat_ky_he_thong
         {
             nguoi_dung_id = user.id,
             hanh_dong = "UPDATE_PROFILE",
-            bang_tac_dong = "hoc_vien",
-            khoa_chinh_du_lieu = hocVien.id,
-            noi_dung = "Cập nhật hồ sơ cá nhân",
+            bang_tac_dong = "nguoi_dung",
+            khoa_chinh_du_lieu = user.id,
+            noi_dung = "Cập nhật thông tin người dùng",
             ip_address = ipAddress,
             created_at = DateTime.UtcNow
         });
@@ -393,7 +507,35 @@ public class AuthService : IAuthService
         await _authRepository.SaveChangesAsync();
 
         var roles = await _authRepository.GetRolesByUserIdAsync(user.id);
-        return MapProfile(user, hocVien, roles.Select(x => x.ma_vai_tro).ToList());
+        return MapUser(user, roles.Select(x => x.ma_vai_tro).ToList());
+    }
+
+    private static MeUserResponseDto MapUser(nguoi_dung user, List<string> roles)
+    {
+        return new MeUserResponseDto
+        {
+            user_id = user.id,
+            ten_dang_nhap = user.ten_dang_nhap,
+            email = user.email,
+            so_dien_thoai = user.so_dien_thoai,
+            trang_thai = user.trang_thai,
+            roles = roles
+        };
+    }
+
+    private static MeStudentProfileResponseDto MapStudentProfile(long userId, hoc_vien hocVien)
+    {
+        return new MeStudentProfileResponseDto
+        {
+            hoc_vien_id = hocVien.id,
+            user_id = userId,
+            ho_ten = hocVien.ho_ten,
+            ngay_sinh = hocVien.ngay_sinh,
+            gioi_tinh = hocVien.gioi_tinh,
+            cccd = hocVien.cccd,
+            dia_chi = hocVien.dia_chi,
+            anh_chan_dung = hocVien.anh_chan_dung
+        };
     }
 
     private MeResponseDto MapProfile(nguoi_dung user, hoc_vien hocVien, List<string> roles)

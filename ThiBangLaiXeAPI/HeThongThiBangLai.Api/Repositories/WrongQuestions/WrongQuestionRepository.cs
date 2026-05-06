@@ -14,9 +14,28 @@ public class WrongQuestionRepository : IWrongQuestionRepository
         _context = context;
     }
 
-    public async Task<hoc_vien?> GetStudentByUserIdAsync(long userId)
+    public async Task<hoc_vien> GetOrCreateStudentByUserIdAsync(long userId)
     {
-        return await _context.hoc_viens.FirstOrDefaultAsync(x => x.nguoi_dung_id == userId);
+        var student = await _context.hoc_viens.FirstOrDefaultAsync(x => x.nguoi_dung_id == userId);
+        if (student is not null)
+        {
+            return student;
+        }
+
+        var user = await _context.nguoi_dungs.FirstOrDefaultAsync(x => x.id == userId)
+            ?? throw new KeyNotFoundException("Không tìm thấy người dùng.");
+
+        student = new hoc_vien
+        {
+            nguoi_dung_id = userId,
+            ho_ten = user.ten_dang_nhap,
+            created_at = DateTime.UtcNow
+        };
+
+        await _context.hoc_viens.AddAsync(student);
+        await _context.SaveChangesAsync();
+
+        return student;
     }
 
     public async Task<List<WrongQuestionStat>> GetWrongQuestionStatsAsync(long hocVienId)

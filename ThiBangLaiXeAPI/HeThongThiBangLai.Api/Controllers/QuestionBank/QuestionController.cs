@@ -20,6 +20,7 @@ public class QuestionController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<PagedList<QuestionListResponseDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
@@ -28,7 +29,27 @@ public class QuestionController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("with-answers")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<PagedList<QuestionWithAnswersDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetListWithAnswers(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null,
+        [FromQuery] long? topicId = null,
+        [FromQuery] string? topicCode = null,
+        [FromQuery] string? status = null,
+        [FromQuery] bool? isCritical = null,
+        [FromQuery] bool includeCorrectAnswer = false,
+        [FromQuery] bool includeExplanation = false)
+    {
+        var result = await _questionService.GetListWithAnswersAsync(page, pageSize, search, topicId, topicCode, status, isCritical, includeCorrectAnswer, includeExplanation);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<QuestionDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]

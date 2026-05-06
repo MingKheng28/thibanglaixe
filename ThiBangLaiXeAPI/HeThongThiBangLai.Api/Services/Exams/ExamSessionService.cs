@@ -18,8 +18,10 @@ public class ExamSessionService : IExamSessionService
 
     public async Task<ApiResponse<StartExamSessionResponseDto>> StartSampleExamAsync(long userId, long sampleExamId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId)
-            ?? throw new NotFoundAppException("Candidate profile not found");
+        if (!await _repository.UserExistsAsync(userId))
+        {
+            throw new NotFoundAppException("User not found");
+        }
 
         var sampleExam = await _repository.GetPublishedSampleExamByIdAsync(sampleExamId)
             ?? throw new NotFoundAppException("Published sample exam not found");
@@ -30,11 +32,13 @@ public class ExamSessionService : IExamSessionService
         }
 
         var startedAt = DateTime.UtcNow;
+        var examSlotId = await _repository.GetOrCreateSampleExamSlotIdAsync(sampleExam.ky_thi_id);
         var session = new bai_thi
         {
-            hoc_vien_id = student.id,
+            hoc_vien_id = null,
+            nguoi_dung_id = userId,
             de_thi_id = sampleExam.id,
-            ca_thi_id = sampleExam.ky_thi_id,
+            ca_thi_id = examSlotId,
             thoi_gian_bat_dau = startedAt,
             tong_so_cau = sampleExam.tong_so_cau,
             so_cau_dung = 0,
@@ -122,7 +126,8 @@ public class ExamSessionService : IExamSessionService
         }
 
         var detail = details[number - 1];
-        var dto = MapQuestion(detail, number);
+        var imageUrls = await _repository.GetPrimaryQuestionImageUrlsAsync([detail.cau_hoi_id]);
+        var dto = MapQuestion(detail, number, imageUrls.GetValueOrDefault(detail.cau_hoi_id));
         return ApiResponseFactory.Success(dto, "Exam question retrieved successfully");
     }
 
@@ -218,6 +223,7 @@ public class ExamSessionService : IExamSessionService
                 QuestionId = x.cau_hoi_id,
                 QuestionContent = x.cau_hoi.noi_dung,
                 IsCritical = x.cau_hoi.la_cau_diem_liet,
+                Explanation = x.cau_hoi.giai_thich_dap_an,
                 SelectedAnswerId = x.dap_an_chon_id,
                 CorrectAnswerId = x.cau_hoi.dap_ans.FirstOrDefault(a => a.la_dap_an_dung)?.id,
                 IsCorrect = x.la_dung
@@ -233,10 +239,7 @@ public class ExamSessionService : IExamSessionService
 
     private async Task<bai_thi> GetSessionOrThrowAsync(long userId, long sessionId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId)
-            ?? throw new NotFoundAppException("Candidate profile not found");
-
-        var session = await _repository.GetSessionByIdForStudentAsync(sessionId, student.id)
+        var session = await _repository.GetSessionByIdForUserAsync(sessionId, userId)
             ?? throw new NotFoundAppException("Exam session not found");
 
         return session;
@@ -298,7 +301,7 @@ public class ExamSessionService : IExamSessionService
         };
     }
 
-    private static ExamSessionQuestionDto MapQuestion(chi_tiet_bai_thi detail, int number)
+    private static ExamSessionQuestionDto MapQuestion(chi_tiet_bai_thi detail, int number, string? imageUrl)
     {
         return new ExamSessionQuestionDto
         {
@@ -307,7 +310,9 @@ public class ExamSessionService : IExamSessionService
             Content = detail.cau_hoi.noi_dung,
             TopicId = detail.cau_hoi.chu_de_id,
             IsCritical = detail.cau_hoi.la_cau_diem_liet,
+            Explanation = detail.cau_hoi.giai_thich_dap_an,
             SelectedAnswerId = detail.dap_an_chon_id,
+            ImageUrl = imageUrl,
             Answers = detail.cau_hoi.dap_ans
                 .OrderBy(x => x.thu_tu)
                 .Select(x => new ExamSessionAnswerOptionDto

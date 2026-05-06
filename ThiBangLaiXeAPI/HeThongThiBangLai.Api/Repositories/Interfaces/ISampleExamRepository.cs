@@ -6,8 +6,10 @@ namespace HeThongThiBangLai.Api.Repositories.Interfaces;
 public interface ISampleExamRepository
 {
     Task<de_thi?> GetByIdAsync(long id);
+    Task<de_thi?> GetPublishedByIdAsync(long id);
     Task<de_thi?> GetByCodeAsync(string code);
     Task<PagedList<de_thi>> GetPagedAsync(int page, int pageSize, string? search = null);
+    Task<PagedList<de_thi>> GetPublishedPagedAsync(int page, int pageSize, string? search = null);
 
     Task<ky_thi?> GetExamPeriodByIdAsync(long id);
     Task<List<cau_hoi>> GetQuestionsByIdsAsync(List<long> ids);

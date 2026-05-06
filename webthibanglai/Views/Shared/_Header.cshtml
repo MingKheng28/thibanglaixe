@@ -92,6 +92,10 @@
                             <div class="fw-bold">@authUsername</div>
                             <small class="text-muted">@authEmail • @roleLabel</small>
                         </div>
+                        @if (authRoles.Contains("ADMIN", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <a class="dropdown-item" asp-controller="Admin" asp-action="Index"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard admin</a>
+                        }
                         <a class="dropdown-item" href="/Login/Profile" target="_self"><i class="fas fa-id-card me-2 text-primary"></i>Xem profile</a>
                         <form method="post" action="/Login/Logout" class="m-0">
                             <button type="submit" class="dropdown-item"><i class="fas fa-sign-out-alt me-2 text-primary"></i>Đăng xuất</button>

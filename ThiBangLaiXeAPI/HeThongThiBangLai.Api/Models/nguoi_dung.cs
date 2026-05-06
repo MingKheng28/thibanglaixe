@@ -23,6 +23,8 @@ public partial class nguoi_dung
 
     public DateTime updated_at { get; set; }
 
+    public virtual ICollection<bai_thi> bai_this { get; set; } = new List<bai_thi>();
+
     public virtual ICollection<dang_ky_du_thi> dang_ky_du_this { get; set; } = new List<dang_ky_du_thi>();
 
     public virtual ICollection<dang_ky_khoa_hoc> dang_ky_khoa_hocs { get; set; } = new List<dang_ky_khoa_hoc>();

@@ -8989,21 +8989,21 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Bao\\.nuget\\packages\\": {}
+    "D:\\nuget-packages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Bao\\OneDrive\\Máy tính\\thibanglai\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
+      "projectUniqueName": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
       "projectName": "HeThongThiBangLai.Api",
-      "projectPath": "C:\\Users\\Bao\\OneDrive\\Máy tính\\thibanglai\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
-      "packagesPath": "C:\\Users\\Bao\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Bao\\OneDrive\\Máy tính\\thibanglai\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\obj\\",
+      "projectPath": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
+      "packagesPath": "D:\\nuget-packages",
+      "outputPath": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Bao\\OneDrive\\Máy tính\\thibanglai\\ThiBangLaiXe\\ThiBangLaiXeAPI\\NuGet.Config",
-        "C:\\Users\\Bao\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 22.2.config",
+        "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\NuGet.Config",
+        "C:\\Users\\onoso\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 24.1.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -9011,7 +9011,6 @@
         "net8.0"
       ],
       "sources": {
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -9092,6 +9091,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.26, 8.0.26]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[8.0.26, 8.0.26]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.26, 8.0.26]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.26, 8.0.26]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -9100,7 +9117,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

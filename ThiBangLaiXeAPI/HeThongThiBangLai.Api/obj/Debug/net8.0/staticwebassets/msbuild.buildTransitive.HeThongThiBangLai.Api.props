@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\HeThongThiBangLai.Api.props" />
-</Project>

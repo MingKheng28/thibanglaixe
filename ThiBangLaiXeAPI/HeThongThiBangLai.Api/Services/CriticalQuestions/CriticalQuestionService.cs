@@ -28,11 +28,7 @@ public class CriticalQuestionService : ICriticalQuestionService
 
     public async Task<ApiResponse<CriticalQuestionSummaryDto>> GetSummaryAsync(long userId)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var criticalQuestions = await _repository.GetCriticalQuestionsAsync();
         var sessionCount = await _repository.GetCriticalPracticeSessionCountAsync(student.id);
@@ -50,11 +46,7 @@ public class CriticalQuestionService : ICriticalQuestionService
 
     public async Task<ApiResponse<CriticalPracticeSessionDto>> StartPracticeAsync(long userId, StartCriticalPracticeRequestDto request)
     {
-        var student = await _repository.GetStudentByUserIdAsync(userId);
-        if (student == null)
-        {
-            throw new NotFoundAppException("Candidate profile not found");
-        }
+        var student = await _repository.GetOrCreateStudentByUserIdAsync(userId);
 
         var criticalQuestions = await _repository.GetCriticalQuestionsAsync();
         if (criticalQuestions.Count < request.Size)

@@ -30,6 +30,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.QuestionType, opt => opt.MapFrom(src => src.loai_cau_hoi))
             .ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.muc_do))
             .ForMember(dest => dest.IsCritical, opt => opt.MapFrom(src => src.la_cau_diem_liet))
+            .ForMember(dest => dest.Explanation, opt => opt.MapFrom(src => src.giai_thich_dap_an))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.trang_thai));
 
         CreateMap<CreateQuestionRequestDto, cau_hoi>()

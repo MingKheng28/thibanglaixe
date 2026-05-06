@@ -3,7 +3,7 @@ namespace HeThongThiBangLai.Api.DTOs.History;
 public class ExamHistoryDetailDto
 {
     public long SessionId { get; set; }
-    public long StudentId { get; set; }
+    public long? StudentId { get; set; }
     public long SampleExamId { get; set; }
     public string SampleExamName { get; set; } = string.Empty;
     public DateTime? StartedAt { get; set; }

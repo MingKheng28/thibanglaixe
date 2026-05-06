@@ -23,6 +23,14 @@ public class SampleExamRepository : ISampleExamRepository
             .FirstOrDefaultAsync(x => x.id == id);
     }
 
+    public async Task<de_thi?> GetPublishedByIdAsync(long id)
+    {
+        return await _context.de_this
+            .Include(x => x.de_thi_cau_hois)
+            .Include(x => x.bai_this)
+            .FirstOrDefaultAsync(x => x.id == id && x.trang_thai == "published" && x.loai_de_thi == "thi_thu");
+    }
+
     public async Task<de_thi?> GetByCodeAsync(string code)
     {
         return await _context.de_this.FirstOrDefaultAsync(x => x.ma_de_thi == code);
@@ -40,6 +48,21 @@ public class SampleExamRepository : ISampleExamRepository
         }
 
         return await PagedList<de_thi>.CreateAsync(query, page, pageSize);
+    }
+
+    public async Task<PagedList<de_thi>> GetPublishedPagedAsync(int page, int pageSize, string? search = null)
+    {
+        var query = _context.de_this
+            .Include(x => x.de_thi_cau_hois)
+            .Where(x => x.trang_thai == "published" && x.loai_de_thi == "thi_thu")
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(x => x.ma_de_thi.Contains(search) || x.ten_de_thi.Contains(search));
+        }
+
+        return await PagedList<de_thi>.CreateAsync(query.OrderByDescending(x => x.ngay_tao), page, pageSize);
     }
 
     public async Task<ky_thi?> GetExamPeriodByIdAsync(long id)

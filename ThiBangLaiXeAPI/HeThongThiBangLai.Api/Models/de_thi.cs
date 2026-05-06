@@ -19,6 +19,8 @@ public partial class de_thi
 
     public string trang_thai { get; set; } = null!;
 
+    public string? loai_de_thi { get; set; }
+
     public long? nguoi_tao_id { get; set; }
 
     public DateTime ngay_tao { get; set; }

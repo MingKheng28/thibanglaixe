@@ -20,7 +20,7 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequestDto>
             .NotEmpty().WithMessage("Mật khẩu không được để trống")
             .MinimumLength(8).WithMessage("Mật khẩu phải có ít nhất 8 ký tự");
 
-        RuleFor(x => x.ho_ten)
-            .NotEmpty().WithMessage("Họ tên không được để trống");
+        RuleFor(x => x.so_dien_thoai)
+            .MaximumLength(20).WithMessage("Số điện thoại không được vượt quá 20 ký tự");
     }
 }
