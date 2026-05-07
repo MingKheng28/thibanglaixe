@@ -9,12 +9,24 @@
   <ItemGroup>
     <Compile Remove="TempObj\**" />
     <Compile Remove="TempBin\**" />
+    <Compile Remove="artifacts\**" />
+    <Compile Remove=".verify\**" />
+    <Compile Remove="VerifyBackendOutput\**" />
     <Content Remove="TempObj\**" />
     <Content Remove="TempBin\**" />
+    <Content Remove="artifacts\**" />
+    <Content Remove=".verify\**" />
+    <Content Remove="VerifyBackendOutput\**" />
     <EmbeddedResource Remove="TempObj\**" />
     <EmbeddedResource Remove="TempBin\**" />
+    <EmbeddedResource Remove="artifacts\**" />
+    <EmbeddedResource Remove=".verify\**" />
+    <EmbeddedResource Remove="VerifyBackendOutput\**" />
     <None Remove="TempObj\**" />
     <None Remove="TempBin\**" />
+    <None Remove="artifacts\**" />
+    <None Remove=".verify\**" />
+    <None Remove="VerifyBackendOutput\**" />
   </ItemGroup>
 
   <ItemGroup>

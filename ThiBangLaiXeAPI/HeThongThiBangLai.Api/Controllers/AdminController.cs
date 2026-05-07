@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 using HeThongThiBangLai.Api.Common.Responses;
 using HeThongThiBangLai.Api.Data;
 using HeThongThiBangLai.Api.Models;
@@ -106,7 +107,29 @@ public sealed class AdminController : ControllerBase
     [HttpGet("questions")]
     public async Task<IActionResult> GetQuestions()
     {
-        var data = await _dbContext.cau_hois.AsNoTracking().Include(item => item.dap_ans).ToListAsync();
+        var data = await _dbContext.cau_hois
+            .AsNoTracking()
+            .OrderBy(item => item.id)
+            .Select(item => new AdminQuestionResponse(
+                item.id,
+                item.chu_de_id,
+                item.noi_dung,
+                item.giai_thich_dap_an,
+                item.loai_cau_hoi,
+                item.muc_do,
+                item.la_cau_diem_liet,
+                item.trang_thai,
+                item.dap_ans
+                    .OrderBy(answer => answer.thu_tu)
+                    .Select(answer => new AdminAnswerResponse(
+                        answer.id,
+                        answer.cau_hoi_id,
+                        answer.noi_dung,
+                        answer.la_dap_an_dung,
+                        answer.thu_tu))
+                    .ToList()))
+            .ToListAsync();
+
         return Ok(ApiResponseFactory.Success(data, "Lấy danh sách câu hỏi thành công"));
     }
 
@@ -125,7 +148,7 @@ public sealed class AdminController : ControllerBase
         };
         _dbContext.cau_hois.Add(question);
         await _dbContext.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetQuestions), ApiResponseFactory.Created(question, "Tạo câu hỏi thành công"));
+        return CreatedAtAction(nameof(GetQuestions), ApiResponseFactory.Created(MapQuestionResponse(question), "Tạo câu hỏi thành công"));
     }
 
     [HttpPut("questions/{id:long}")]
@@ -141,7 +164,7 @@ public sealed class AdminController : ControllerBase
         question.la_cau_diem_liet = request.IsCritical;
         question.trang_thai = request.Status ?? question.trang_thai;
         await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponseFactory.Success(question, "Cập nhật câu hỏi thành công"));
+        return Ok(ApiResponseFactory.Success(MapQuestionResponse(question), "Cập nhật câu hỏi thành công"));
     }
 
     [HttpDelete("questions/{id:long}")]
@@ -436,7 +459,7 @@ public sealed class AdminController : ControllerBase
                 item.cccd,
                 item.dia_chi,
                 item.created_at,
-                user = new { item.nguoi_dung.id, item.nguoi_dung.email, item.nguoi_dung.so_dien_thoai, item.nguoi_dung.trang_thai },
+                user = new { item.nguoi_dung.id, item.nguoi_dung.ten_dang_nhap, item.nguoi_dung.email, item.nguoi_dung.so_dien_thoai, item.nguoi_dung.trang_thai },
                 classes = item.lop_hoc_hoc_viens.Select(enrollment => new
                 {
                     enrollment.id,
@@ -456,6 +479,87 @@ public sealed class AdminController : ControllerBase
             .ToListAsync();
 
         return Ok(ApiResponseFactory.Success(data, "Lấy danh sách học viên thành công"));
+    }
+
+    [HttpPost("students")]
+    public async Task<IActionResult> CreateStudent([FromBody] UpsertStudentRequest request)
+    {
+        var now = DateTime.UtcNow;
+        var username = string.IsNullOrWhiteSpace(request.Username) ? request.Email : request.Username.Trim();
+        var email = request.Email.Trim().ToLowerInvariant();
+        var existed = await _dbContext.nguoi_dungs.AnyAsync(item => item.ten_dang_nhap == username || item.email == email || (!string.IsNullOrWhiteSpace(request.PhoneNumber) && item.so_dien_thoai == request.PhoneNumber));
+        if (existed) return Conflict(ApiResponseFactory.Fail("Tên đăng nhập, email hoặc số điện thoại đã tồn tại."));
+
+        var cccdExists = !string.IsNullOrWhiteSpace(request.Cccd) && await _dbContext.hoc_viens.AnyAsync(item => item.cccd == request.Cccd);
+        if (cccdExists) return Conflict(ApiResponseFactory.Fail("CCCD học viên đã tồn tại."));
+
+        var user = new nguoi_dung
+        {
+            ten_dang_nhap = username,
+            email = email,
+            so_dien_thoai = request.PhoneNumber,
+            trang_thai = request.Status ?? "hoat_dong",
+            created_at = now,
+            updated_at = now
+        };
+        user.mat_khau_hash = new PasswordHasher<nguoi_dung>().HashPassword(user, string.IsNullOrWhiteSpace(request.Password) ? "Student@123" : request.Password);
+        _dbContext.nguoi_dungs.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        var student = new hoc_vien
+        {
+            nguoi_dung_id = user.id,
+            ho_ten = request.FullName,
+            ngay_sinh = request.DateOfBirth,
+            gioi_tinh = request.Gender,
+            cccd = request.Cccd,
+            dia_chi = request.Address,
+            anh_chan_dung = request.AvatarUrl,
+            created_at = now
+        };
+        _dbContext.hoc_viens.Add(student);
+        await _dbContext.SaveChangesAsync();
+        return Ok(ApiResponseFactory.Created(new { student.id, student.nguoi_dung_id }, "Tạo học viên thành công"));
+    }
+
+    [HttpPut("students/{id:long}")]
+    public async Task<IActionResult> UpdateStudent(long id, [FromBody] UpsertStudentRequest request)
+    {
+        var student = await _dbContext.hoc_viens.Include(item => item.nguoi_dung).FirstOrDefaultAsync(item => item.id == id);
+        if (student is null) return NotFound(ApiResponseFactory.Fail("Không tìm thấy học viên"));
+
+        var email = request.Email.Trim().ToLowerInvariant();
+        var username = string.IsNullOrWhiteSpace(request.Username) ? student.nguoi_dung.ten_dang_nhap : request.Username.Trim();
+        var duplicateUser = await _dbContext.nguoi_dungs.AnyAsync(item => item.id != student.nguoi_dung_id && (item.ten_dang_nhap == username || item.email == email || (!string.IsNullOrWhiteSpace(request.PhoneNumber) && item.so_dien_thoai == request.PhoneNumber)));
+        if (duplicateUser) return Conflict(ApiResponseFactory.Fail("Tên đăng nhập, email hoặc số điện thoại đã tồn tại."));
+        var duplicateCccd = !string.IsNullOrWhiteSpace(request.Cccd) && await _dbContext.hoc_viens.AnyAsync(item => item.id != id && item.cccd == request.Cccd);
+        if (duplicateCccd) return Conflict(ApiResponseFactory.Fail("CCCD học viên đã tồn tại."));
+
+        student.ho_ten = request.FullName;
+        student.ngay_sinh = request.DateOfBirth;
+        student.gioi_tinh = request.Gender;
+        student.cccd = request.Cccd;
+        student.dia_chi = request.Address;
+        student.anh_chan_dung = request.AvatarUrl;
+        student.nguoi_dung.ten_dang_nhap = username;
+        student.nguoi_dung.email = email;
+        student.nguoi_dung.so_dien_thoai = request.PhoneNumber;
+        student.nguoi_dung.trang_thai = request.Status ?? student.nguoi_dung.trang_thai;
+        student.nguoi_dung.updated_at = DateTime.UtcNow;
+        if (!string.IsNullOrWhiteSpace(request.Password)) student.nguoi_dung.mat_khau_hash = new PasswordHasher<nguoi_dung>().HashPassword(student.nguoi_dung, request.Password);
+        await _dbContext.SaveChangesAsync();
+        return Ok(ApiResponseFactory.Success(new { student.id, student.nguoi_dung_id }, "Cập nhật học viên thành công"));
+    }
+
+    [HttpDelete("students/{id:long}")]
+    public async Task<IActionResult> DeleteStudent(long id)
+    {
+        var student = await _dbContext.hoc_viens.Include(item => item.nguoi_dung).FirstOrDefaultAsync(item => item.id == id);
+        if (student is null) return NotFound(ApiResponseFactory.Fail("Không tìm thấy học viên"));
+        student.nguoi_dung.trang_thai = "tam_khoa";
+        student.nguoi_dung.updated_at = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+        return Ok(ApiResponseFactory.Success(new { id }, "Khóa tài khoản học viên thành công"));
     }
 
     [HttpGet("teachers")]
@@ -731,11 +835,36 @@ public sealed class AdminController : ControllerBase
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return long.TryParse(userIdValue, out var userId) ? userId : null;
     }
+
+    private static AdminQuestionResponse MapQuestionResponse(cau_hoi question)
+    {
+        return new AdminQuestionResponse(
+            question.id,
+            question.chu_de_id,
+            question.noi_dung,
+            question.giai_thich_dap_an,
+            question.loai_cau_hoi,
+            question.muc_do,
+            question.la_cau_diem_liet,
+            question.trang_thai,
+            question.dap_ans
+                .OrderBy(answer => answer.thu_tu)
+                .Select(answer => new AdminAnswerResponse(
+                    answer.id,
+                    answer.cau_hoi_id,
+                    answer.noi_dung,
+                    answer.la_dap_an_dung,
+                    answer.thu_tu))
+                .ToList());
+    }
 }
 
 public sealed record UpdateStatusRequest(string Status);
 public sealed record AssignRoleRequest(long? RoleId, string? RoleCode);
 public sealed record UpsertQuestionRequest(long TopicId, string Content, string? Explanation, string? QuestionType, string? Level, bool IsCritical, string? Status);
+public sealed record UpsertStudentRequest(string? Username, string Email, string? PhoneNumber, string? Password, string FullName, DateOnly? DateOfBirth, string? Gender, string? Cccd, string? Address, string? AvatarUrl, string? Status);
+public sealed record AdminQuestionResponse(long id, long chu_de_id, string noi_dung, string? giai_thich_dap_an, string loai_cau_hoi, string? muc_do, bool la_cau_diem_liet, string trang_thai, List<AdminAnswerResponse> dap_ans);
+public sealed record AdminAnswerResponse(long id, long cau_hoi_id, string noi_dung, bool la_dap_an_dung, int thu_tu);
 public sealed record UpsertAnswerRequest(long QuestionId, string Content, bool IsCorrect, int Order);
 public sealed record UpsertExamRequest(string Code, string Name, long ExamPeriodId, int TotalQuestions, int DurationMinutes, string? Status, string? Type);
 public sealed record AddExamQuestionRequest(long QuestionId, int Order);

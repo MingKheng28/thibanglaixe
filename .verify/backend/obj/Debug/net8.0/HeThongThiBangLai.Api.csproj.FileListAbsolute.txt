@@ -1,0 +1,9 @@
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.csproj.AssemblyReference.cache
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\rpswa.dswa.cache.json
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.GeneratedMSBuildEditorConfig.editorconfig
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.AssemblyInfoInputs.cache
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.AssemblyInfo.cs
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.csproj.CoreCompileInputs.cache
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.MvcApplicationPartsAssemblyInfo.cs
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.MvcApplicationPartsAssemblyInfo.cache
+c:\moto_license_project\ThiBangLaiXe\.verify\backend\obj\Debug\net8.0\HeThongThiBangLai.Api.sourcelink.json

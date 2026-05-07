@@ -1,5 +1,182 @@
-<section id="topics" class="admin-section"><div class="page-header"><div><h1>Giáo trình / Chủ đề câu hỏi</h1><p>Nhóm kiến thức dùng cho ôn tập và cấu trúc ngân hàng câu hỏi.</p></div></div><div class="card"><div class="card-header"><div class="card-title">＋ Thêm giáo trình</div></div><div class="card-body"><form class="form-grid" data-create="curriculum"><div class="field"><label>Mã giáo trình</label><input name="code" required /></div><div class="field"><label>Tên giáo trình</label><input name="name" required /></div><div class="field"><label>Hạng bằng</label><input name="licenseClass" value="A1" /></div><div class="field"><label>Trạng thái</label><select name="status"><option value="active">Hoạt động</option><option value="inactive">Ngưng</option></select></div><div class="field"><label>Mô tả</label><input name="description" /></div><button class="btn btn-primary" type="submit">Lưu giáo trình</button></form></div></div><div class="card"><div class="card-header"><div class="card-title">📚 Giáo trình</div><span class="card-action">GET /api/v1/admin/v2/curriculums</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã</th><th>Tên giáo trình</th><th>Hạng</th><th>Số bài</th><th>Trạng thái</th></tr></thead><tbody id="curriculums-body"></tbody></table></div></div><div class="card"><div class="card-header"><div class="card-title">📖 Chủ đề</div><span class="card-action">GET /api/v1/admin/topics</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã</th><th>Tên chủ đề</th><th>Mô tả</th><th>Số câu hỏi</th></tr></thead><tbody id="topics-body"></tbody></table></div></div><div class="card"><div class="card-header"><div class="card-title">📘 Bài học</div><span class="card-action">GET /api/v1/admin/v2/lessons</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã bài</th><th>Tên bài</th><th>Giáo trình</th><th>Loại</th><th>Thứ tự</th><th>Thời lượng</th></tr></thead><tbody id="lessons-body"></tbody></table></div></div></section>
-<section id="questions" class="admin-section"><div class="page-header"><div><h1>Ngân hàng câu hỏi</h1><p>Quản lý câu hỏi sát hạch, câu điểm liệt và trạng thái sử dụng.</p></div></div><div class="card"><div class="card-header"><div class="card-title">❓ Câu hỏi</div><span class="card-action">GET /api/v1/admin/questions</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Nội dung</th><th>Chủ đề</th><th>Mức độ</th><th>Loại</th><th>Trạng thái</th></tr></thead><tbody id="questions-body"></tbody></table></div></div></section>
-<section id="exams" class="admin-section"><div class="page-header"><div><h1>Đề thi sát hạch</h1><p>Tạo và quản lý đề thi, thời gian làm bài, loại đề và trạng thái công bố.</p></div></div><div class="card"><div class="card-header"><div class="card-title">＋ Thêm đề thi</div></div><div class="card-body"><form class="form-grid" data-create="exam"><div class="field"><label>Mã đề</label><input name="code" required /></div><div class="field"><label>Tên đề</label><input name="name" required /></div><div class="field"><label>Kỳ thi ID</label><input name="examPeriodId" type="number" required /></div><div class="field"><label>Số câu</label><input name="totalQuestions" type="number" value="25" required /></div><div class="field"><label>Thời gian phút</label><input name="durationMinutes" type="number" value="19" required /></div><div class="field"><label>Loại đề</label><select name="type"><option value="sat_hach">Sát hạch</option><option value="thi_thu">Thi thử</option><option value="on_tap">Ôn tập</option></select></div><button class="btn btn-primary" type="submit">Lưu đề thi</button></form></div></div><div class="card"><div class="card-header"><div class="card-title">🧾 Đề thi</div><span class="card-action">GET /api/v1/admin/v2/exam-papers</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã đề</th><th>Tên đề</th><th>Câu</th><th>Thời gian</th><th>Loại</th><th>Công bố</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="exams-body"></tbody></table></div></div></section>
-<section id="exam-periods" class="admin-section"><div class="page-header"><div><h1>Quản lý thi cử</h1><p>Kỳ thi, ca thi và danh sách đăng ký dự thi đã/chưa duyệt.</p></div></div><div class="card"><div class="card-header"><div class="card-title">🏁 Kỳ thi</div><span class="card-action">GET /api/v1/admin/exam-periods</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã kỳ thi</th><th>Tên kỳ thi</th><th>Ngày thi</th><th>Địa điểm</th><th>Trạng thái</th></tr></thead><tbody id="exam-periods-body"></tbody></table></div></div><div class="card"><div class="card-header"><div class="card-title">🕒 Ca thi</div><span class="card-action">GET /api/v1/admin/v2/exam-sessions</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã ca</th><th>Tên ca</th><th>Kỳ thi</th><th>Ngày</th><th>Giờ</th><th>Giám thị</th><th>Đăng ký</th><th>Trạng thái</th></tr></thead><tbody id="exam-sessions-body"></tbody></table></div></div><div class="card"><div class="card-header"><div class="card-title">📝 Đăng ký dự thi</div><span class="card-action">GET /api/v1/admin/exam-registrations</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Học viên</th><th>Kỳ thi</th><th>Ca thi</th><th>Ngày thi</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="exam-registrations-body"></tbody></table></div></div></section>
-<section id="exam-results" class="admin-section"><div class="page-header"><div><h1>Kết quả thi</h1><p>Theo dõi điểm, số câu đúng và trạng thái đạt/không đạt.</p></div></div><div class="card"><div class="card-header"><div class="card-title">📈 Kết quả</div><span class="card-action">GET /api/v1/admin/exam-results</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Học viên</th><th>Câu đúng</th><th>Điểm</th><th>Kết quả</th><th>Ngày thi</th></tr></thead><tbody id="exam-results-body"></tbody></table></div></div></section>
+<section id="topics" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Giáo trình / Chủ đề câu hỏi</h1>
+      <p>Nhóm kiến thức dùng cho ôn tập và cấu trúc ngân hàng câu hỏi.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật giáo trình</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="curriculum">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Mã giáo trình</label><input name="code" required /></div>
+        <div class="field"><label>Tên giáo trình</label><input name="name" required /></div>
+        <div class="field"><label>Hạng bằng</label><input name="licenseClass" value="A1" /></div>
+        <div class="field"><label>Trạng thái</label><select name="status"><option value="active">Hoạt động</option><option value="inactive">Ngưng</option></select></div>
+        <div class="field"><label>Mô tả</label><input name="description" /></div>
+        <button class="btn btn-primary" type="submit">Lưu giáo trình</button>
+        <button class="btn" type="button" data-action="curriculum-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📚 Giáo trình</div><span class="card-action">GET /api/v1/admin/v2/curriculums</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã</th><th>Tên giáo trình</th><th>Hạng</th><th>Số bài</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="curriculums-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📖 Chủ đề</div><span class="card-action">GET /api/v1/admin/topics</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã</th><th>Tên chủ đề</th><th>Mô tả</th><th>Số câu hỏi</th></tr></thead>
+        <tbody id="topics-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📘 Bài học</div><span class="card-action">GET /api/v1/admin/v2/lessons</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã bài</th><th>Tên bài</th><th>Giáo trình</th><th>Loại</th><th>Thứ tự</th><th>Thời lượng</th></tr></thead>
+        <tbody id="lessons-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="questions" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Ngân hàng câu hỏi</h1>
+      <p>Quản lý câu hỏi sát hạch, câu điểm liệt và trạng thái sử dụng. Bấm dòng để sửa/xóa.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật câu hỏi</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="question">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Chủ đề ID</label><input name="topicId" type="number" required /></div>
+        <div class="field"><label>Mức độ</label><input name="level" /></div>
+        <div class="field"><label>Loại câu hỏi</label><input name="questionType" value="trac_nghiem" /></div>
+        <div class="field"><label>Trạng thái</label><select name="status"><option value="hoat_dong">Hoạt động</option><option value="tam_khoa">Tạm khóa</option><option value="nhap">Nháp</option></select></div>
+        <div class="field"><label>Câu điểm liệt</label><select name="isCritical"><option value="false">Không</option><option value="true">Có</option></select></div>
+        <div class="field" style="grid-column: 1 / span 2;"><label>Nội dung</label><textarea name="content" rows="3" required></textarea></div>
+        <div class="field" style="grid-column: 1 / span 2;"><label>Giải thích đáp án</label><textarea name="explanation" rows="2"></textarea></div>
+        <button class="btn btn-primary" type="submit">Lưu câu hỏi</button>
+        <button class="btn" type="button" data-action="question-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">❓ Câu hỏi</div><span class="card-action">GET /api/v1/admin/questions</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Nội dung</th><th>Chủ đề</th><th>Mức độ</th><th>Loại</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="questions-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="exams" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Đề thi sát hạch</h1>
+      <p>Tạo và quản lý đề thi, thời gian làm bài, loại đề và trạng thái công bố.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">＋ Thêm đề thi</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-create="exam">
+        <div class="field"><label>Mã đề</label><input name="code" required /></div>
+        <div class="field"><label>Tên đề</label><input name="name" required /></div>
+        <div class="field"><label>Kỳ thi ID</label><input name="examPeriodId" type="number" required /></div>
+        <div class="field"><label>Số câu</label><input name="totalQuestions" type="number" value="25" required /></div>
+        <div class="field"><label>Thời gian phút</label><input name="durationMinutes" type="number" value="19" required /></div>
+        <div class="field"><label>Loại đề</label><select name="type"><option value="sat_hach">Sát hạch</option><option value="thi_thu">Thi thử</option><option value="on_tap">Ôn tập</option></select></div>
+        <button class="btn btn-primary" type="submit">Lưu đề thi</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🧾 Đề thi</div><span class="card-action">GET /api/v1/admin/v2/exam-papers</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã đề</th><th>Tên đề</th><th>Câu</th><th>Thời gian</th><th>Loại</th><th>Công bố</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="exams-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="exam-periods" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý thi cử</h1>
+      <p>Kỳ thi, ca thi và danh sách đăng ký dự thi đã/chưa duyệt.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🏁 Kỳ thi</div><span class="card-action">GET /api/v1/admin/exam-periods</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã kỳ thi</th><th>Tên kỳ thi</th><th>Ngày thi</th><th>Địa điểm</th><th>Trạng thái</th></tr></thead>
+        <tbody id="exam-periods-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🕒 Ca thi</div><span class="card-action">GET /api/v1/admin/v2/exam-sessions</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã ca</th><th>Tên ca</th><th>Kỳ thi</th><th>Ngày</th><th>Giờ</th><th>Giám thị</th><th>Đăng ký</th><th>Trạng thái</th></tr></thead>
+        <tbody id="exam-sessions-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📝 Đăng ký dự thi</div><span class="card-action">GET /api/v1/admin/exam-registrations</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Học viên</th><th>Kỳ thi</th><th>Ca thi</th><th>Ngày thi</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="exam-registrations-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="exam-results" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Kết quả thi</h1>
+      <p>Theo dõi điểm, số câu đúng và trạng thái đạt/không đạt.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">📈 Kết quả</div><span class="card-action">GET /api/v1/admin/exam-results</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Học viên</th><th>Câu đúng</th><th>Điểm</th><th>Kết quả</th><th>Ngày thi</th></tr></thead>
+        <tbody id="exam-results-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>

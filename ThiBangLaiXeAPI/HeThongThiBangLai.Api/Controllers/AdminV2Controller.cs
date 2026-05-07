@@ -207,6 +207,32 @@ public sealed class AdminV2Controller : ControllerBase
         return Ok(ApiResponseFactory.Created(new { id }, "Tạo giáo trình thành công"));
     }
 
+    [HttpPut("curriculums/{id:long}")]
+    public async Task<IActionResult> UpdateCurriculum(long id, [FromBody] UpsertCurriculumRequest request, CancellationToken cancellationToken)
+    {
+        if (!await HasAnyPermissionAsync(cancellationToken, "curriculums.update", "questions.update")) return Forbid();
+        var affected = await ExecuteAsync("""
+            UPDATE dbo.giao_trinh
+            SET ma_giao_trinh = @code,
+                ten_giao_trinh = @name,
+                hang_bang = @license,
+                mo_ta = @description,
+                trang_thai = @status
+            WHERE id = @id;
+            """, cancellationToken,
+            ("@id", id), ("@code", request.Code), ("@name", request.Name), ("@license", request.LicenseClass),
+            ("@description", request.Description), ("@status", request.Status ?? "active"));
+        return affected == 0 ? NotFound(ApiResponseFactory.Fail("Không tìm thấy giáo trình")) : Ok(ApiResponseFactory.Success(new { id }, "Cập nhật giáo trình thành công"));
+    }
+
+    [HttpDelete("curriculums/{id:long}")]
+    public async Task<IActionResult> DeleteCurriculum(long id, CancellationToken cancellationToken)
+    {
+        if (!await HasAnyPermissionAsync(cancellationToken, "curriculums.delete", "questions.delete")) return Forbid();
+        var affected = await ExecuteAsync("UPDATE dbo.giao_trinh SET trang_thai = 'inactive' WHERE id = @id;", cancellationToken, ("@id", id));
+        return affected == 0 ? NotFound(ApiResponseFactory.Fail("Không tìm thấy giáo trình")) : Ok(ApiResponseFactory.Success(new { id }, "Ngưng sử dụng giáo trình thành công"));
+    }
+
     [HttpGet("lessons")]
     public async Task<IActionResult> GetLessons([FromQuery] long? curriculumId, CancellationToken cancellationToken)
     {

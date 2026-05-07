@@ -1,6 +1,226 @@
-<section id="students" class="admin-section"><div class="page-header"><div><h1>Quản lý học viên</h1><p>Danh sách hồ sơ học viên lấy từ bảng học viên, tài khoản, hồ sơ đăng ký và lớp đã duyệt.</p></div></div><div class="card"><div class="card-header"><div class="card-title">👥 Học viên</div><span class="card-action">GET /api/v1/admin/students</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Họ tên</th><th>Email</th><th>Số điện thoại</th><th>Lớp đang học</th><th>Hồ sơ</th><th>Tài khoản</th><th>Ngày vào lớp</th></tr></thead><tbody id="students-body"></tbody></table></div></div></section>
-<section id="teachers" class="admin-section"><div class="page-header"><div><h1>Quản lý giáo viên</h1><p>Giáo viên dùng hồ sơ riêng từ bảng giao_vien, không dùng chung họ tên học viên.</p></div></div><div class="card"><div class="card-header"><div class="card-title">👨‍🏫 Giáo viên</div><span class="card-action">GET /api/v1/admin/v2/teachers</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã GV</th><th>Họ tên</th><th>Email</th><th>Số điện thoại</th><th>Hạng GPLX</th><th>Số lớp</th><th>Trạng thái</th></tr></thead><tbody id="teachers-body"></tbody></table></div></div></section>
-<section id="users" class="admin-section"><div class="page-header"><div><h1>Quản lý người dùng</h1><p>Tài khoản, vai trò và trạng thái truy cập hệ thống.</p></div></div><div class="card"><div class="card-header"><div class="card-title">📋 Người dùng</div><span class="card-action">GET /api/v1/admin/users</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Tài khoản</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody id="users-body"></tbody></table></div></div></section>
-<section id="courses" class="admin-section"><div class="page-header"><div><h1>Quản lý khóa học</h1><p>Tạo, theo dõi học phí, thời lượng và trạng thái mở khóa.</p></div></div><div class="card"><div class="card-header"><div class="card-title">＋ Thêm khóa học</div></div><div class="card-body"><form class="form-grid" data-create="course"><div class="field"><label>Mã khóa</label><input name="code" required /></div><div class="field"><label>Tên khóa</label><input name="name" required /></div><div class="field"><label>Học phí</label><input name="fee" type="number" min="0" required /></div><div class="field"><label>Thời lượng</label><input name="duration" type="number" /></div><div class="field"><label>Trạng thái</label><select name="status"><option value="dang_mo">Đang mở</option><option value="hoat_dong">Hoạt động</option></select></div><div class="field"><label>Mô tả</label><input name="description" /></div><button class="btn btn-primary" type="submit">Lưu khóa học</button></form></div></div><div class="card"><div class="card-header"><div class="card-title">📚 Khóa học</div><span class="card-action">GET /api/v1/admin/courses</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã</th><th>Tên khóa</th><th>Học phí</th><th>Thời lượng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="courses-body"></tbody></table></div></div></section>
-<section id="classes" class="admin-section"><div class="page-header"><div><h1>Quản lý lớp học</h1><p>Gắn lớp với khóa học, giáo viên, sĩ số, lịch học và buổi học kế tiếp.</p></div></div><div class="card"><div class="card-header"><div class="card-title">＋ Thêm lớp</div></div><div class="card-body"><form class="form-grid" data-create="class"><div class="field"><label>Khóa học ID</label><input name="courseId" type="number" required /></div><div class="field"><label>Mã lớp</label><input name="code" required /></div><div class="field"><label>Tên lớp</label><input name="name" required /></div><div class="field"><label>Giáo viên ID</label><input name="teacherId" type="number" /></div><div class="field"><label>Ngày bắt đầu</label><input name="startDate" type="date" /></div><div class="field"><label>Ngày kết thúc</label><input name="endDate" type="date" /></div><div class="field"><label>Sĩ số tối đa</label><input name="maxStudents" type="number" value="30" /></div><button class="btn btn-primary" type="submit">Lưu lớp</button></form></div></div><div class="card"><div class="card-header"><div class="card-title">🏫 Lớp học</div><span class="card-action">GET /api/v1/admin/classes</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Mã</th><th>Tên lớp</th><th>Khóa</th><th>Bắt đầu</th><th>Kết thúc</th><th>Sĩ số</th><th>Số buổi</th><th>Buổi tới</th><th>Trạng thái</th></tr></thead><tbody id="classes-body"></tbody></table></div></div></section>
-<section id="schedules" class="admin-section"><div class="page-header"><div><h1>Lịch học & lịch thi</h1><p>Quản lý buổi học theo lớp, loại lý thuyết/thực hành/ôn tập/thi thử và giáo viên phụ trách.</p></div></div><div class="card"><div class="card-header"><div class="card-title">＋ Thêm lịch học</div></div><div class="card-body"><form class="form-grid" data-create="schedule"><div class="field"><label>Lớp ID</label><input name="classId" type="number" required /></div><div class="field"><label>Tên buổi</label><input name="name" required /></div><div class="field"><label>Loại buổi</label><select name="type"><option value="ly_thuyet">Lý thuyết</option><option value="thuc_hanh">Thực hành</option><option value="on_tap">Ôn tập</option><option value="thi_thu">Thi thử</option><option value="thi_sat_hach">Thi sát hạch</option></select></div><div class="field"><label>Giáo viên ID</label><input name="teacherId" type="number" /></div><div class="field"><label>Ngày học</label><input name="studyDate" type="date" required /></div><div class="field"><label>Bắt đầu</label><input name="startTime" type="time" required /></div><div class="field"><label>Kết thúc</label><input name="endTime" type="time" required /></div><div class="field"><label>Địa điểm</label><input name="location" /></div><div class="field"><label>Phòng/Sân</label><input name="room" /></div><div class="field"><label>Nội dung</label><input name="content" /></div><button class="btn btn-primary" type="submit">Lưu lịch</button></form></div></div><div class="card"><div class="card-header"><div class="card-title">📅 Lịch học</div><span class="card-action">GET /api/v1/admin/v2/schedules</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Tên buổi</th><th>Lớp</th><th>Loại</th><th>Ngày</th><th>Giờ</th><th>Giáo viên</th><th>Địa điểm</th></tr></thead><tbody id="schedules-body"></tbody></table></div></div></section>
+<section id="students" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý học viên</h1>
+      <p>Danh sách hồ sơ học viên lấy từ bảng học viên, tài khoản, hồ sơ đăng ký và lớp đã duyệt.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật học viên</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="student">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Tên đăng nhập</label><input name="username" placeholder="Mặc định dùng email khi tạo mới" /></div>
+        <div class="field"><label>Email</label><input name="email" type="email" required /></div>
+        <div class="field"><label>Số điện thoại</label><input name="phoneNumber" /></div>
+        <div class="field"><label>Mật khẩu</label><input name="password" type="password" placeholder="Để trống khi cập nhật" /></div>
+        <div class="field"><label>Họ tên</label><input name="fullName" required /></div>
+        <div class="field"><label>Ngày sinh</label><input name="dateOfBirth" type="date" /></div>
+        <div class="field"><label>Giới tính</label><select name="gender"><option value="">—</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select></div>
+        <div class="field"><label>CCCD</label><input name="cccd" /></div>
+        <div class="field"><label>Địa chỉ</label><input name="address" /></div>
+        <div class="field"><label>Ảnh chân dung URL</label><input name="avatarUrl" /></div>
+        <div class="field"><label>Trạng thái tài khoản</label><select name="status"><option value="hoat_dong">Hoạt động</option><option value="tam_khoa">Tạm khóa</option></select></div>
+        <button class="btn btn-primary" type="submit">Lưu học viên</button>
+        <button class="btn" type="button" data-action="student-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👥 Học viên</div>
+      <span class="card-action">GET /api/v1/admin/students</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>ID</th><th>Họ tên</th><th>Email</th><th>Số điện thoại</th><th>Lớp đang học</th><th>Hồ sơ</th><th>Tài khoản</th><th>Ngày vào lớp</th><th>Thao tác</th></tr>
+        </thead>
+        <tbody id="students-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="teachers" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý giáo viên</h1>
+      <p>Giáo viên dùng hồ sơ riêng từ bảng giao_vien, không dùng chung họ tên học viên.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật giáo viên</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="teacher">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Người dùng ID</label><input name="userId" type="number" required /></div>
+        <div class="field"><label>Mã giáo viên</label><input name="code" required /></div>
+        <div class="field"><label>Họ tên</label><input name="fullName" required /></div>
+        <div class="field"><label>Ngày sinh</label><input name="dateOfBirth" type="date" /></div>
+        <div class="field"><label>Giới tính</label><select name="gender"><option value="">—</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select></div>
+        <div class="field"><label>CCCD</label><input name="cccd" /></div>
+        <div class="field"><label>Số GPLX</label><input name="licenseNumber" /></div>
+        <div class="field"><label>Hạng GPLX</label><input name="licenseClass" placeholder="A1, A2, B1..." /></div>
+        <div class="field"><label>Chuyên môn</label><input name="specialization" /></div>
+        <div class="field"><label>Kinh nghiệm (năm)</label><input name="experienceYears" type="number" min="0" /></div>
+        <div class="field"><label>Trạng thái</label><select name="status"><option value="hoat_dong">Hoạt động</option><option value="ngung_day">Ngừng dạy</option></select></div>
+        <button class="btn btn-primary" type="submit">Lưu giáo viên</button>
+        <button class="btn" type="button" data-action="teacher-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👨‍🏫 Giáo viên</div>
+      <span class="card-action">GET /api/v1/admin/v2/teachers</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Mã GV</th><th>Họ tên</th><th>Email</th><th>Số điện thoại</th><th>Hạng GPLX</th><th>Số lớp</th><th>Trạng thái</th><th>Thao tác</th></tr>
+        </thead>
+        <tbody id="teachers-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="users" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý người dùng</h1>
+      <p>Tài khoản, vai trò và trạng thái truy cập hệ thống.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 Người dùng</div>
+      <span class="card-action">GET /api/v1/admin/users</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>ID</th><th>Tài khoản</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr>
+        </thead>
+        <tbody id="users-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="courses" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý khóa học</h1>
+      <p>Tạo, sửa, xóa khóa học. Bấm vào 1 dòng ở bảng bên dưới để đổ dữ liệu lên form.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật khóa học</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="course">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Mã khóa</label><input name="code" required /></div>
+        <div class="field"><label>Tên khóa</label><input name="name" required /></div>
+        <div class="field"><label>Học phí</label><input name="fee" type="number" min="0" required /></div>
+        <div class="field"><label>Thời lượng</label><input name="duration" type="number" /></div>
+        <div class="field"><label>Trạng thái</label><select name="status"><option value="dang_mo">Đang mở</option><option value="hoat_dong">Hoạt động</option></select></div>
+        <div class="field"><label>Mô tả</label><input name="description" /></div>
+        <button class="btn btn-primary" type="submit">Lưu khóa học</button>
+        <button class="btn" type="button" data-action="course-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📚 Khóa học</div><span class="card-action">GET /api/v1/admin/courses</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã</th><th>Tên khóa</th><th>Học phí</th><th>Thời lượng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="courses-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="classes" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Quản lý lớp học</h1>
+      <p>Gắn lớp với khóa học, giáo viên, sĩ số, lịch học và buổi học kế tiếp. Bấm dòng để sửa.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật lớp học</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="class">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Khóa học ID</label><input name="courseId" type="number" required /></div>
+        <div class="field"><label>Mã lớp</label><input name="code" required /></div>
+        <div class="field"><label>Tên lớp</label><input name="name" required /></div>
+        <div class="field"><label>Giáo viên ID</label><input name="teacherId" type="number" /></div>
+        <div class="field"><label>Ngày bắt đầu</label><input name="startDate" type="date" /></div>
+        <div class="field"><label>Ngày kết thúc</label><input name="endDate" type="date" /></div>
+        <div class="field"><label>Sĩ số tối đa</label><input name="maxStudents" type="number" value="30" /></div>
+        <div class="field"><label>Trạng thái</label><select name="status"><option value="dang_mo">Đang mở</option><option value="hoat_dong">Hoạt động</option></select></div>
+        <button class="btn btn-primary" type="submit">Lưu lớp học</button>
+        <button class="btn" type="button" data-action="class-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🏫 Lớp học</div><span class="card-action">GET /api/v1/admin/classes</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Mã</th><th>Tên lớp</th><th>Khóa</th><th>Bắt đầu</th><th>Kết thúc</th><th>Sĩ số</th><th>Số buổi</th><th>Buổi tới</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+        <tbody id="classes-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="schedules" class="admin-section">
+  <div class="page-header">
+    <div>
+      <h1>Lịch học & lịch thi</h1>
+      <p>Quản lý buổi học theo lớp, loại lý thuyết/thực hành/ôn tập/thi thử và giáo viên phụ trách. Bấm dòng để sửa.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">🛠️ Cập nhật lịch học</div></div>
+    <div class="card-body">
+      <form class="form-grid" data-edit="schedule">
+        <input type="hidden" name="id" />
+        <div class="field"><label>Lớp ID</label><input name="classId" type="number" required /></div>
+        <div class="field"><label>Tên buổi</label><input name="name" required /></div>
+        <div class="field"><label>Loại buổi</label><select name="type"><option value="ly_thuyet">Lý thuyết</option><option value="thuc_hanh">Thực hành</option><option value="on_tap">Ôn tập</option><option value="thi_thu">Thi thử</option><option value="thi_sat_hach">Thi sát hạch</option></select></div>
+        <div class="field"><label>Giáo viên ID</label><input name="teacherId" type="number" /></div>
+        <div class="field"><label>Ngày học</label><input name="studyDate" type="date" required /></div>
+        <div class="field"><label>Bắt đầu</label><input name="startTime" type="time" required /></div>
+        <div class="field"><label>Kết thúc</label><input name="endTime" type="time" required /></div>
+        <div class="field"><label>Địa điểm</label><input name="location" /></div>
+        <div class="field"><label>Phòng/Sân</label><input name="room" /></div>
+        <div class="field"><label>Nội dung</label><input name="content" /></div>
+        <button class="btn btn-primary" type="submit">Lưu lịch</button>
+        <button class="btn" type="button" data-action="schedule-clear-form">Làm mới form</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">📅 Lịch học</div><span class="card-action">GET /api/v1/admin/v2/schedules</span></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>Tên buổi</th><th>Lớp</th><th>Loại</th><th>Ngày</th><th>Giờ</th><th>Giáo viên</th><th>Địa điểm</th><th>Thao tác</th></tr></thead>
+        <tbody id="schedules-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>

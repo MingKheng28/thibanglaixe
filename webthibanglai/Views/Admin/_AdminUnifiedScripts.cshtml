@@ -1,0 +1,464 @@
+<script>
+(function () {
+  'use strict';
+
+  var endpoints = {
+    users: '/api/v1/admin/users',
+    students: '/api/v1/admin/students',
+    teachers: '/api/v1/admin/v2/teachers',
+    courses: '/api/v1/admin/courses',
+    classes: '/api/v1/admin/classes',
+    schedules: '/api/v1/admin/v2/schedules',
+    courseRegistrations: '/api/v1/admin/course-registrations',
+    examRegistrations: '/api/v1/admin/exam-registrations',
+    feeTypes: '/api/v1/admin/fee-types',
+    topics: '/api/v1/admin/topics',
+    curriculums: '/api/v1/admin/v2/curriculums',
+    lessons: '/api/v1/admin/v2/lessons',
+    questions: '/api/v1/admin/questions',
+    exams: '/api/v1/admin/v2/exam-papers',
+    examPeriods: '/api/v1/admin/exam-periods',
+    examSessions: '/api/v1/admin/v2/exam-sessions',
+    examResults: '/api/v1/admin/exam-results',
+    certificates: '/api/v1/admin/certificates',
+    receipts: '/api/v1/admin/receipts',
+    notifications: '/api/v1/admin/v2/notifications'
+  };
+
+  var state = { data: {}, loading: false, errors: {} };
+  var vi = new Intl.NumberFormat('vi-VN');
+  var money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
+
+  function getToken() {
+    var meta = document.querySelector('meta[name="admin-access-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+
+  function apiUrl(path) { return '/Admin/ApiProxy?path=' + encodeURIComponent(path); }
+
+  function prop(obj, snakeName, camelName, fallback) {
+    if (!obj) return fallback;
+    if (Object.prototype.hasOwnProperty.call(obj, snakeName) && obj[snakeName] !== undefined && obj[snakeName] !== null) return obj[snakeName];
+    if (camelName && Object.prototype.hasOwnProperty.call(obj, camelName) && obj[camelName] !== undefined && obj[camelName] !== null) return obj[camelName];
+    return fallback;
+  }
+
+  async function request(path, options) {
+    var response = await fetch(apiUrl(path), Object.assign({ headers: { 'Content-Type': 'application/json', 'X-Admin-Access-Token': getToken() } }, options || {}));
+    var text = await response.text();
+    var json = text ? JSON.parse(text) : null;
+    if (!response.ok) throw new Error((json && json.message) || ('Không thể gọi API quản trị: ' + path));
+    if (json && json.success === false) throw new Error(json.message || ('API quản trị trả về lỗi: ' + path));
+    return json && Object.prototype.hasOwnProperty.call(json, 'data') ? json.data : json;
+  }
+
+  function byId(id) { return document.getElementById(id); }
+  function asArray(value) { return Array.isArray(value) ? value : []; }
+  function fmtDate(value) { return value ? new Date(value).toLocaleString('vi-VN') : '—'; }
+  function fmtDateOnly(value) { return value ? new Date(value).toLocaleDateString('vi-VN') : '—'; }
+  function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
+
+  function toDateInput(value) {
+    if (!value) return '';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().slice(0, 10);
+  }
+
+  function statusLabel(status) {
+    var map = {
+      hoat_dong: 'Hoạt động', dang_mo: 'Đang mở', tam_khoa: 'Tạm khóa', cho_duyet: 'Chờ duyệt', da_duyet: 'Đã duyệt',
+      cho_xac_nhan: 'Chờ xác nhận', da_xac_nhan: 'Đã xác nhận', da_huy: 'Đã hủy', dang_hoc: 'Đang học',
+      nhap: 'Bản nháp', dat: 'Đạt', khong_dat: 'Không đạt', active: 'Hoạt động', inactive: 'Ngưng', issued: 'Đã cấp',
+      ly_thuyet: 'Lý thuyết', thuc_hanh: 'Thực hành', on_tap: 'Ôn tập', thi_thu: 'Thi thử', thi_sat_hach: 'Thi sát hạch',
+      sap_dien_ra: 'Sắp diễn ra', ngung_day: 'Ngừng dạy', sat_hach: 'Sát hạch', info: 'Thông tin', warning: 'Cảnh báo', error: 'Lỗi'
+    };
+    return map[status] || (status ? String(status).replace(/_/g, ' ') : 'Không rõ');
+  }
+
+  function badge(status) {
+    var cls = /hoat|dang|duyet|xac_nhan|dat|issued|active|ly_thuyet|thuc_hanh|on_tap|sat_hach|info/.test(status || '') ? 'badge-green'
+      : /cho|nhap|sap|warning/.test(status || '') ? 'badge-amber'
+      : /huy|khoa|khong|error|ngung|inactive/.test(status || '') ? 'badge-red' : 'badge-gray';
+    return '<span class="badge ' + cls + '">' + esc(statusLabel(status)) + '</span>';
+  }
+
+  function toast(message, type) {
+    var root = document.querySelector('.admin-toast') || document.body.appendChild(Object.assign(document.createElement('div'), { className: 'admin-toast' }));
+    var item = document.createElement('div');
+    item.className = 'toast-item ' + (type || '');
+    item.textContent = message;
+    root.appendChild(item);
+    setTimeout(function () { item.remove(); }, 4200);
+  }
+
+  function setText(id, value) { var el = byId(id); if (el) el.textContent = value; }
+  function rows(id, html, colspan, error) {
+    var el = byId(id);
+    if (!el) return;
+    if (html) { el.innerHTML = html; return; }
+    el.innerHTML = '<tr><td colspan="' + (colspan || 6) + '" class="empty">' + esc(error || 'Chưa có dữ liệu từ API.') + '</td></tr>';
+  }
+
+  function setFormValues(formSelector, values) {
+    var form = document.querySelector(formSelector);
+    if (!form) return;
+    Object.keys(values).forEach(function (key) {
+      var input = form.querySelector('[name="' + key + '"]');
+      if (input) input.value = values[key] == null ? '' : String(values[key]);
+    });
+  }
+
+  function clearForm(formSelector) {
+    var form = document.querySelector(formSelector);
+    if (!form) return;
+    form.reset();
+    var idField = form.querySelector('[name="id"]');
+    if (idField) idField.value = '';
+  }
+
+  async function loadAll() {
+    state.loading = true;
+    state.errors = {};
+    try {
+      var keys = Object.keys(endpoints);
+      var results = await Promise.all(keys.map(function (key) {
+        return request(endpoints[key])
+          .then(function (data) { return [key, asArray(data), null]; })
+          .catch(function (err) { return [key, [], err.message || 'Không tải được dữ liệu.']; });
+      }));
+      results.forEach(function (pair) {
+        state.data[pair[0]] = pair[1];
+        if (pair[2]) state.errors[pair[0]] = pair[2];
+      });
+      renderAll();
+      if (state.errors.questions) toast('Không tải được ngân hàng câu hỏi: ' + state.errors.questions, 'error');
+      else toast('Đã đồng bộ dữ liệu quản trị từ backend.', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally { state.loading = false; }
+  }
+
+  function renderAll() {
+    var d = state.data;
+    var activeEnrollments = asArray(d.students).reduce(function (sum, student) { return sum + asArray(prop(student, 'classes', 'classes', [])).filter(function (x) { return prop(x, 'trang_thai', 'trangThai', '') === 'dang_hoc'; }).length; }, 0);
+    var approvedProfiles = asArray(d.students).filter(function (student) { return asArray(prop(student, 'profiles', 'profiles', [])).some(function (profile) { return prop(profile, 'trang_thai', 'trangThai', '') === 'da_duyet'; }); }).length;
+    var approvedCourseRegistrations = asArray(d.courseRegistrations).filter(function (x) { return prop(x, 'trang_thai', 'trangThai', '') === 'da_duyet'; }).length;
+
+    setText('stat-users', vi.format(asArray(d.users).length));
+    setText('stat-students', vi.format(asArray(d.students).length));
+    setText('stat-courses', vi.format(asArray(d.courses).length));
+    setText('stat-exams', vi.format(asArray(d.exams).length));
+    setText('stat-questions', vi.format(asArray(d.questions).length));
+    setText('stat-receipts', vi.format(asArray(d.receipts).filter(function (x) { return prop(x, 'trang_thai', 'trangThai', '') === 'cho_xac_nhan'; }).length));
+    setText('stat-results', vi.format(asArray(d.examResults).length));
+    setText('stat-certificates', vi.format(asArray(d.certificates).length));
+    setText('stat-revenue', money.format(asArray(d.receipts).reduce(function (s, x) { return s + Number(prop(x, 'tong_tien', 'tongTien', 0)); }, 0)));
+    setText('stat-active-enrollments', vi.format(activeEnrollments));
+    setText('stat-approved-profiles', vi.format(approvedProfiles));
+    setText('stat-approved-course-registrations', vi.format(approvedCourseRegistrations));
+    setText('stat-fee-types', vi.format(asArray(d.feeTypes).length));
+
+    rows('users-body', asArray(d.users).map(function (x) {
+      var status = prop(x, 'trang_thai', 'trangThai', '');
+      return '<tr><td class="mono">#' + prop(x, 'id', 'id', '') + '</td><td class="bold">' + esc(prop(x, 'ten_dang_nhap', 'tenDangNhap', '')) + '</td><td>' + esc(prop(x, 'email', 'email', '')) + '</td><td>' + esc(asArray(prop(x, 'roles', 'roles', [])).map(function (r) { return prop(r, 'ten_vai_tro', 'tenVaiTro', ''); }).join(', ') || '—') + '</td><td>' + badge(status) + '</td><td class="mono">' + fmtDate(prop(x, 'created_at', 'createdAt', null)) + '</td><td><button class="btn" data-action="toggle-user" data-id="' + prop(x, 'id', 'id', '') + '" data-status="' + (status === 'hoat_dong' ? 'tam_khoa' : 'hoat_dong') + '">Đổi trạng thái</button></td></tr>';
+    }).join(''), 7, state.errors.users);
+
+    rows('students-body', asArray(d.students).map(function (x) {
+      var user = prop(x, 'user', 'user', {}) || {};
+      var classes = asArray(prop(x, 'classes', 'classes', []));
+      var profiles = asArray(prop(x, 'profiles', 'profiles', []));
+      var activeClass = classes.find(function (item) { return prop(item, 'trang_thai', 'trangThai', '') === 'dang_hoc'; }) || classes[0] || {};
+      var profile = profiles.find(function (item) { return prop(item, 'trang_thai', 'trangThai', '') === 'da_duyet'; }) || profiles[0] || {};
+      var id = prop(x, 'id', 'id', '');
+      return '<tr data-action="select-student" data-id="' + id + '"><td class="mono">#' + id + '</td><td class="bold">' + esc(prop(x, 'ho_ten', 'hoTen', '')) + '</td><td>' + esc(prop(user, 'email', 'email', '—')) + '</td><td>' + esc(prop(user, 'so_dien_thoai', 'soDienThoai', '—')) + '</td><td>' + esc(prop(activeClass, 'class_name', 'className', 'Chưa vào lớp')) + '</td><td>' + badge(prop(profile, 'trang_thai', 'trangThai', 'cho_nop')) + '</td><td>' + badge(prop(user, 'trang_thai', 'trangThai', '')) + '</td><td class="mono">' + fmtDateOnly(prop(activeClass, 'ngay_vao_lop', 'ngayVaoLop', null)) + '</td><td><button class="btn btn-danger" data-action="delete-student" data-id="' + id + '">Khóa</button></td></tr>';
+    }).join(''), 9, state.errors.students);
+
+    rows('teachers-body', asArray(d.teachers).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      return '<tr data-action="select-teacher" data-id="' + id + '"><td class="mono">' + esc(prop(x, 'ma_giao_vien', 'maGiaoVien', '#' + id)) + '</td><td class="bold">' + esc(prop(x, 'ho_ten', 'hoTen', prop(x, 'ten_dang_nhap', 'tenDangNhap', '—'))) + '</td><td>' + esc(prop(x, 'email', 'email', '—')) + '</td><td>' + esc(prop(x, 'so_dien_thoai', 'soDienThoai', '—')) + '</td><td>' + esc(prop(x, 'hang_gplx', 'hangGplx', '—')) + '</td><td>' + vi.format(prop(x, 'class_count', 'classCount', 0)) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn btn-danger" data-action="delete-teacher" data-id="' + id + '">Ngưng</button></td></tr>';
+    }).join(''), 8, state.errors.teachers);
+
+    rows('courses-body', asArray(d.courses).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      return '<tr data-action="select-course" data-id="' + id + '"><td class="mono">' + esc(prop(x, 'ma_khoa_hoc', 'maKhoaHoc', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_khoa_hoc', 'tenKhoaHoc', '')) + '</td><td>' + money.format(Number(prop(x, 'hoc_phi', 'hocPhi', 0))) + '</td><td>' + esc(prop(x, 'thoi_luong', 'thoiLuong', '—')) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn btn-danger" data-action="delete-course" data-id="' + id + '">Xóa</button></td></tr>';
+    }).join(''), 6, state.errors.courses);
+
+    rows('classes-body', asArray(d.classes).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      var next = prop(x, 'next_schedule', 'nextSchedule', {}) || {};
+      return '<tr data-action="select-class" data-id="' + id + '"><td class="mono">' + esc(prop(x, 'ma_lop', 'maLop', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_lop', 'tenLop', '')) + '</td><td>' + esc(prop(x, 'course_name', 'courseName', '#' + prop(x, 'khoa_hoc_id', 'khoaHocId', ''))) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_bat_dau', 'ngayBatDau', null)) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_ket_thuc', 'ngayKetThuc', null)) + '</td><td class="bold">' + vi.format(prop(x, 'current_students', 'currentStudents', 0)) + '/' + vi.format(prop(x, 'si_so_toi_da', 'siSoToiDa', 0)) + '</td><td>' + vi.format(prop(x, 'schedule_count', 'scheduleCount', 0)) + '</td><td>' + (prop(next, 'ngay_hoc', 'ngayHoc', null) ? fmtDateOnly(prop(next, 'ngay_hoc', 'ngayHoc', null)) + ' · ' + esc(prop(next, 'gio_bat_dau', 'gioBatDau', '')) : '—') + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn btn-danger" data-action="delete-class" data-id="' + id + '">Xóa</button></td></tr>';
+    }).join(''), 10, state.errors.classes);
+
+    rows('schedules-body', asArray(d.schedules).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      return '<tr data-action="select-schedule" data-id="' + id + '"><td class="mono">#' + id + '</td><td class="bold">' + esc(prop(x, 'ten_buoi', 'tenBuoi', '')) + '</td><td>' + esc(prop(x, 'ma_lop', 'maLop', '#' + prop(x, 'lop_hoc_id', 'lopHocId', ''))) + '</td><td>' + badge(prop(x, 'loai_buoi', 'loaiBuoi', '')) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_hoc', 'ngayHoc', null)) + '</td><td class="mono">' + esc(prop(x, 'gio_bat_dau', 'gioBatDau', '')) + ' - ' + esc(prop(x, 'gio_ket_thuc', 'gioKetThuc', '')) + '</td><td>' + esc(prop(x, 'teacher_name', 'teacherName', '—')) + '</td><td>' + esc(prop(x, 'dia_diem', 'diaDiem', prop(x, 'phong_hoc', 'phongHoc', '—'))) + '</td><td><button class="btn btn-danger" data-action="delete-schedule" data-id="' + id + '">Xóa</button></td></tr>';
+    }).join(''), 9, state.errors.schedules);
+
+    rows('curriculums-body', asArray(d.curriculums).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      return '<tr data-action="select-curriculum" data-id="' + id + '"><td class="mono">' + esc(prop(x, 'ma_giao_trinh', 'maGiaoTrinh', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_giao_trinh', 'tenGiaoTrinh', '')) + '</td><td>' + esc(prop(x, 'hang_bang', 'hangBang', '—')) + '</td><td>' + vi.format(prop(x, 'lesson_count', 'lessonCount', 0)) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn btn-danger" data-action="delete-curriculum" data-id="' + id + '">Xóa</button></td></tr>';
+    }).join(''), 6, state.errors.curriculums);
+
+    rows('lessons-body', asArray(d.lessons).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_bai_hoc', 'maBaiHoc', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_bai_hoc', 'tenBaiHoc', '')) + '</td><td>' + esc(prop(x, 'ten_giao_trinh', 'tenGiaoTrinh', '#' + prop(x, 'giao_trinh_id', 'giaoTrinhId', ''))) + '</td><td>' + badge(prop(x, 'loai_bai_hoc', 'loaiBaiHoc', '')) + '</td><td>' + vi.format(prop(x, 'thu_tu', 'thuTu', 0)) + '</td><td>' + (prop(x, 'thoi_luong_phut', 'thoiLuongPhut', null) ? vi.format(prop(x, 'thoi_luong_phut', 'thoiLuongPhut', 0)) + ' phút' : '—') + '</td></tr>';
+    }).join(''), 6, state.errors.lessons);
+
+    rows('topics-body', asArray(d.topics).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_chu_de', 'maChuDe', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_chu_de', 'tenChuDe', '')) + '</td><td>' + esc(prop(x, 'mo_ta', 'moTa', '—')) + '</td><td>' + vi.format(prop(x, 'question_count', 'questionCount', 0)) + '</td></tr>';
+    }).join(''), 4, state.errors.topics);
+
+    rows('questions-body', asArray(d.questions).map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      var topicId = prop(x, 'chu_de_id', 'chuDeId', '');
+      var isCritical = Boolean(prop(x, 'la_cau_diem_liet', 'laCauDiemLiet', false));
+      return '<tr data-action="select-question" data-id="' + id + '"><td class="mono">#' + id + '</td><td class="bold">' + esc(prop(x, 'noi_dung', 'noiDung', '')).slice(0, 180) + '</td><td>#' + esc(topicId) + '</td><td>' + esc(prop(x, 'muc_do', 'mucDo', '—')) + '</td><td>' + esc(prop(x, 'loai_cau_hoi', 'loaiCauHoi', '—')) + (isCritical ? ' <span class="badge badge-red">Điểm liệt</span>' : '') + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn btn-danger" data-action="delete-question" data-id="' + id + '">Xóa</button></td></tr>';
+    }).join(''), 7, state.errors.questions);
+
+    rows('exams-body', asArray(d.exams).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_de_thi', 'maDeThi', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_de_thi', 'tenDeThi', '')) + '</td><td>' + vi.format(prop(x, 'question_count', 'questionCount', prop(x, 'tong_so_cau', 'tongSoCau', 0))) + '</td><td>' + vi.format(prop(x, 'thoi_gian_lam_bai', 'thoiGianLamBai', 0)) + ' phút</td><td>' + badge(prop(x, 'loai_de_thi', 'loaiDeThi', '—')) + '</td><td>' + (prop(x, 'is_public', 'isPublic', false) ? '<span class="badge badge-green">Đã công bố</span>' : '<span class="badge badge-amber">Chưa công bố</span>') + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn" data-action="publish-exam" data-id="' + prop(x, 'id', 'id', '') + '">Công bố</button></td></tr>';
+    }).join(''), 8, state.errors.exams);
+
+    rows('exam-periods-body', asArray(d.examPeriods).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_ky_thi', 'maKyThi', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_ky_thi', 'tenKyThi', '')) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_thi', 'ngayThi', null)) + '</td><td>' + esc(prop(x, 'dia_diem', 'diaDiem', '—')) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td></tr>';
+    }).join(''), 5, state.errors.examPeriods);
+
+    rows('exam-sessions-body', asArray(d.examSessions).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_ca_thi', 'maCaThi', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_ca_thi', 'tenCaThi', '')) + '</td><td>' + esc(prop(x, 'ten_ky_thi', 'tenKyThi', prop(x, 'ma_ky_thi', 'maKyThi', '—'))) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_thi', 'ngayThi', null)) + '</td><td class="mono">' + esc(prop(x, 'gio_bat_dau', 'gioBatDau', '')) + ' - ' + esc(prop(x, 'gio_ket_thuc', 'gioKetThuc', '')) + '</td><td>' + esc(prop(x, 'examiner_name', 'examinerName', '—')) + '</td><td>' + vi.format(prop(x, 'registration_count', 'registrationCount', 0)) + '/' + vi.format(prop(x, 'so_luong_toi_da', 'soLuongToiDa', 0)) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td></tr>';
+    }).join(''), 8, state.errors.examSessions);
+
+    rows('exam-results-body', asArray(d.examResults).map(function (x) {
+      return '<tr><td class="mono">#' + prop(x, 'id', 'id', '') + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '')) + '</td><td>' + vi.format(prop(x, 'so_cau_dung', 'soCauDung', 0)) + '/' + vi.format(prop(x, 'tong_so_cau', 'tongSoCau', 0)) + '</td><td class="bold">' + esc(prop(x, 'diem', 'diem', '')) + '</td><td>' + badge(prop(x, 'ket_qua', 'ketQua', '')) + '</td><td class="mono">' + fmtDate(prop(x, 'created_at', 'createdAt', null)) + '</td></tr>';
+    }).join(''), 6, state.errors.examResults);
+
+    rows('certificates-body', asArray(d.certificates).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_chung_chi', 'maChungChi', '')) + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '')) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_cap', 'ngayCap', null)) + '</td><td>' + fmtDateOnly(prop(x, 'ngay_het_han', 'ngayHetHan', null)) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td></tr>';
+    }).join(''), 5, state.errors.certificates);
+
+    rows('course-registrations-body', asArray(d.courseRegistrations).map(function (x) {
+      var assigned = asArray(prop(x, 'assigned_classes', 'assignedClasses', [])).map(function (item) { return prop(item, 'class_name', 'className', ''); }).join(', ') || 'Chưa gán lớp';
+      return '<tr><td class="mono">#' + prop(x, 'id', 'id', '') + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '')) + '</td><td>' + esc(prop(x, 'course_name', 'courseName', '')) + '</td><td>' + esc(assigned) + '</td><td>' + money.format(Number(prop(x, 'course_fee', 'courseFee', 0))) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td class="mono">' + fmtDate(prop(x, 'ngay_duyet', 'ngayDuyet', prop(x, 'ngay_dang_ky', 'ngayDangKy', null))) + '</td><td><button class="btn" data-action="approve-course-registration" data-id="' + prop(x, 'id', 'id', '') + '">Duyệt</button></td></tr>';
+    }).join(''), 8, state.errors.courseRegistrations);
+
+    rows('exam-registrations-body', asArray(d.examRegistrations).map(function (x) {
+      return '<tr><td class="mono">#' + prop(x, 'id', 'id', '') + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '')) + '</td><td>' + esc(prop(x, 'exam_period_name', 'examPeriodName', '—')) + '</td><td>' + esc(prop(x, 'exam_session_name', 'examSessionName', prop(x, 'exam_session_code', 'examSessionCode', '—'))) + '</td><td>' + fmtDateOnly(prop(x, 'exam_date', 'examDate', null)) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td><button class="btn" data-action="approve-exam-registration" data-id="' + prop(x, 'id', 'id', '') + '">Duyệt</button></td></tr>';
+    }).join(''), 7, state.errors.examRegistrations);
+
+    rows('fee-types-body', asArray(d.feeTypes).map(function (x) {
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_loai', 'maLoai', '')) + '</td><td class="bold">' + esc(prop(x, 'ten_loai', 'tenLoai', '')) + '</td><td>' + money.format(Number(prop(x, 'so_tien_mac_dinh', 'soTienMacDinh', 0))) + '</td><td>' + esc(prop(x, 'mo_ta', 'moTa', '—')) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td></tr>';
+    }).join(''), 5, state.errors.feeTypes);
+
+    rows('receipts-body', asArray(d.receipts).map(function (x) {
+      var feeTypes = asArray(prop(x, 'details', 'details', [])).map(function (detail) { return prop(detail, 'fee_type_name', 'feeTypeName', prop(detail, 'fee_type_code', 'feeTypeCode', '')); }).join(', ') || '—';
+      return '<tr><td class="mono">' + esc(prop(x, 'ma_phieu_thu', 'maPhieuThu', '')) + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '—')) + '</td><td>' + esc(feeTypes) + '</td><td class="bold">' + money.format(Number(prop(x, 'tong_tien', 'tongTien', 0))) + '</td><td>' + badge(prop(x, 'trang_thai', 'trangThai', '')) + '</td><td class="mono">' + fmtDate(prop(x, 'ngay_thu', 'ngayThu', null)) + '</td><td><button class="btn" data-action="confirm-receipt" data-id="' + prop(x, 'id', 'id', '') + '">Xác nhận</button> <button class="btn btn-danger" data-action="cancel-receipt" data-id="' + prop(x, 'id', 'id', '') + '">Hủy</button></td></tr>';
+    }).join(''), 7, state.errors.receipts);
+
+    rows('notifications-body', asArray(d.notifications).map(function (x) {
+      var isRead = Boolean(prop(x, 'da_doc', 'daDoc', false));
+      return '<tr><td class="mono">#' + prop(x, 'id', 'id', '') + '</td><td>' + esc(prop(x, 'loai', 'loai', '—')) + '</td><td>' + badge(prop(x, 'muc_do', 'mucDo', 'info')) + '</td><td class="bold">' + esc(prop(x, 'tieu_de', 'tieuDe', '—')) + '</td><td>' + esc(prop(x, 'doi_tuong', 'doiTuong', '—')) + '</td><td>' + (isRead ? '<span class="badge badge-gray">Đã đọc</span>' : '<span class="badge badge-amber">Chưa đọc</span>') + '</td><td class="mono">' + fmtDate(prop(x, 'created_at', 'createdAt', null)) + '</td><td>' + (isRead ? '—' : '<button class="btn" data-action="read-notification" data-id="' + prop(x, 'id', 'id', '') + '">Đánh dấu đã đọc</button>') + '</td></tr>';
+    }).join(''), 8, state.errors.notifications);
+  }
+
+  function updateBreadcrumb(nav) {
+    var groupEl = byId('admin-breadcrumb-group');
+    var titleEl = byId('admin-breadcrumb-title');
+    if (!groupEl || !titleEl) return;
+    var group = nav && nav.dataset.group ? nav.dataset.group : 'Tổng quan';
+    var title = nav && nav.dataset.title ? nav.dataset.title : 'Dashboard';
+    groupEl.textContent = group;
+    titleEl.textContent = title;
+    document.title = title + ' · ' + group + ' · Admin GPLX Portal';
+  }
+
+  function activate(section) {
+    var nav = document.querySelector('.nav-item[data-section="' + section + '"]') || document.querySelector('.nav-item[data-section="dashboard"]');
+    var targetSection = nav ? nav.dataset.section : 'dashboard';
+    document.querySelectorAll('.admin-section').forEach(function (el) { el.classList.toggle('active', el.id === targetSection); });
+    document.querySelectorAll('.nav-item[data-section]').forEach(function (el) { el.classList.toggle('active', el === nav); });
+    updateBreadcrumb(nav);
+    history.replaceState(null, '', '#' + targetSection);
+  }
+
+  async function mutate(path, method, body) {
+    await request(path, { method: method, body: body ? JSON.stringify(body) : undefined });
+    await loadAll();
+  }
+
+  function selectStudent(id) {
+    var item = asArray(state.data.students).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    var user = prop(item, 'user', 'user', {}) || {};
+    setFormValues('form[data-edit="student"]', {
+      id: prop(item, 'id', 'id', ''), username: prop(user, 'ten_dang_nhap', 'tenDangNhap', ''), email: prop(user, 'email', 'email', ''), phoneNumber: prop(user, 'so_dien_thoai', 'soDienThoai', ''), password: '',
+      fullName: prop(item, 'ho_ten', 'hoTen', ''), dateOfBirth: toDateInput(prop(item, 'ngay_sinh', 'ngaySinh', null)), gender: prop(item, 'gioi_tinh', 'gioiTinh', ''), cccd: prop(item, 'cccd', 'cccd', ''), address: prop(item, 'dia_chi', 'diaChi', ''), avatarUrl: prop(item, 'anh_chan_dung', 'anhChanDung', ''), status: prop(user, 'trang_thai', 'trangThai', 'hoat_dong')
+    });
+    toast('Đã nạp dữ liệu học viên lên form.', 'success');
+  }
+
+  function selectTeacher(id) {
+    var item = asArray(state.data.teachers).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="teacher"]', {
+      id: prop(item, 'id', 'id', ''), userId: prop(item, 'nguoi_dung_id', 'nguoiDungId', ''), code: prop(item, 'ma_giao_vien', 'maGiaoVien', ''), fullName: prop(item, 'ho_ten', 'hoTen', ''),
+      dateOfBirth: toDateInput(prop(item, 'ngay_sinh', 'ngaySinh', null)), gender: prop(item, 'gioi_tinh', 'gioiTinh', ''), cccd: prop(item, 'cccd', 'cccd', ''), licenseNumber: prop(item, 'so_gplx', 'soGplx', ''), licenseClass: prop(item, 'hang_gplx', 'hangGplx', ''), specialization: prop(item, 'chuyen_mon', 'chuyenMon', ''), experienceYears: prop(item, 'kinh_nghiem_nam', 'kinhNghiemNam', ''), status: prop(item, 'trang_thai', 'trangThai', 'hoat_dong')
+    });
+    toast('Đã nạp dữ liệu giáo viên lên form.', 'success');
+  }
+
+  function selectCourse(id) {
+    var item = asArray(state.data.courses).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="course"]', {
+      id: prop(item, 'id', 'id', ''), code: prop(item, 'ma_khoa_hoc', 'maKhoaHoc', ''), name: prop(item, 'ten_khoa_hoc', 'tenKhoaHoc', ''),
+      fee: Number(prop(item, 'hoc_phi', 'hocPhi', 0)), duration: prop(item, 'thoi_luong', 'thoiLuong', ''), status: prop(item, 'trang_thai', 'trangThai', 'dang_mo'), description: prop(item, 'mo_ta', 'moTa', '')
+    });
+    toast('Đã nạp dữ liệu khóa học lên form.', 'success');
+  }
+
+  function selectClass(id) {
+    var item = asArray(state.data.classes).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="class"]', {
+      id: prop(item, 'id', 'id', ''), courseId: prop(item, 'khoa_hoc_id', 'khoaHocId', ''), code: prop(item, 'ma_lop', 'maLop', ''), name: prop(item, 'ten_lop', 'tenLop', ''),
+      teacherId: prop(item, 'giao_vien_id', 'giaoVienId', ''), startDate: toDateInput(prop(item, 'ngay_bat_dau', 'ngayBatDau', null)), endDate: toDateInput(prop(item, 'ngay_ket_thuc', 'ngayKetThuc', null)), maxStudents: Number(prop(item, 'si_so_toi_da', 'siSoToiDa', 30)), status: prop(item, 'trang_thai', 'trangThai', 'dang_mo')
+    });
+    toast('Đã nạp dữ liệu lớp học lên form.', 'success');
+  }
+
+  function selectSchedule(id) {
+    var item = asArray(state.data.schedules).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="schedule"]', {
+      id: prop(item, 'id', 'id', ''), classId: prop(item, 'lop_hoc_id', 'lopHocId', ''), name: prop(item, 'ten_buoi', 'tenBuoi', ''), type: prop(item, 'loai_buoi', 'loaiBuoi', 'ly_thuyet'), teacherId: prop(item, 'giao_vien_id', 'giaoVienId', ''),
+      studyDate: toDateInput(prop(item, 'ngay_hoc', 'ngayHoc', null)), startTime: prop(item, 'gio_bat_dau', 'gioBatDau', ''), endTime: prop(item, 'gio_ket_thuc', 'gioKetThuc', ''), content: prop(item, 'noi_dung', 'noiDung', ''), room: prop(item, 'phong_hoc', 'phongHoc', ''), location: prop(item, 'dia_diem', 'diaDiem', '')
+    });
+    toast('Đã nạp dữ liệu lịch học lên form.', 'success');
+  }
+
+  function selectCurriculum(id) {
+    var item = asArray(state.data.curriculums).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="curriculum"]', {
+      id: prop(item, 'id', 'id', ''), code: prop(item, 'ma_giao_trinh', 'maGiaoTrinh', ''), name: prop(item, 'ten_giao_trinh', 'tenGiaoTrinh', ''), licenseClass: prop(item, 'hang_bang', 'hangBang', 'A1'), status: prop(item, 'trang_thai', 'trangThai', 'active'), description: prop(item, 'mo_ta', 'moTa', '')
+    });
+    toast('Đã nạp dữ liệu giáo trình lên form.', 'success');
+  }
+
+  function selectQuestion(id) {
+    var item = asArray(state.data.questions).find(function (x) { return Number(prop(x, 'id', 'id', 0)) === Number(id); });
+    if (!item) return;
+    setFormValues('form[data-edit="question"]', {
+      id: prop(item, 'id', 'id', ''), topicId: prop(item, 'chu_de_id', 'chuDeId', ''), level: prop(item, 'muc_do', 'mucDo', ''), questionType: prop(item, 'loai_cau_hoi', 'loaiCauHoi', 'trac_nghiem'),
+      status: prop(item, 'trang_thai', 'trangThai', 'hoat_dong'), isCritical: prop(item, 'la_cau_diem_liet', 'laCauDiemLiet', false) ? 'true' : 'false', content: prop(item, 'noi_dung', 'noiDung', ''), explanation: prop(item, 'giai_thich_dap_an', 'giaiThichDapAn', '')
+    });
+    toast('Đã nạp dữ liệu câu hỏi lên form.', 'success');
+  }
+
+  document.addEventListener('click', function (e) {
+    var nav = e.target.closest('[data-section]');
+    if (nav) { e.preventDefault(); activate(nav.dataset.section); return; }
+
+    var action = e.target.closest('[data-action]');
+    if (!action) return;
+
+    var id = action.dataset.id;
+    var type = action.dataset.action;
+
+    if (type === 'toggle-user') mutate('/api/v1/admin/users/' + id + '/status', 'PATCH', { status: action.dataset.status });
+    if (type === 'delete-student' && confirm('Khóa tài khoản học viên này?')) mutate('/api/v1/admin/students/' + id, 'DELETE');
+    if (type === 'delete-teacher' && confirm('Ngưng hoạt động giáo viên này?')) mutate('/api/v1/admin/v2/teachers/' + id, 'DELETE');
+    if (type === 'delete-course' && confirm('Xóa khóa học này?')) mutate('/api/v1/admin/courses/' + id, 'DELETE');
+    if (type === 'delete-class' && confirm('Xóa lớp học này?')) mutate('/api/v1/admin/classes/' + id, 'DELETE');
+    if (type === 'delete-schedule' && confirm('Xóa lịch học này?')) mutate('/api/v1/admin/schedules/' + id, 'DELETE');
+    if (type === 'delete-question' && confirm('Xóa câu hỏi này?')) mutate('/api/v1/admin/questions/' + id, 'DELETE');
+    if (type === 'delete-curriculum' && confirm('Xóa giáo trình này?')) mutate('/api/v1/admin/v2/curriculums/' + id, 'DELETE');
+
+    if (type === 'approve-course-registration') mutate('/api/v1/admin/course-registrations/' + id + '/approve', 'PATCH');
+    if (type === 'approve-exam-registration') mutate('/api/v1/admin/exam-registrations/' + id + '/approve', 'PATCH');
+    if (type === 'confirm-receipt') mutate('/api/v1/admin/receipts/' + id + '/confirm', 'PATCH');
+    if (type === 'cancel-receipt') mutate('/api/v1/admin/receipts/' + id + '/cancel', 'PATCH');
+    if (type === 'publish-exam') mutate('/api/v1/admin/v2/exam-papers/' + id + '/publish', 'PATCH');
+    if (type === 'read-notification') mutate('/api/v1/admin/v2/notifications/' + id + '/read', 'PATCH');
+
+    if (type === 'select-student') selectStudent(id);
+    if (type === 'select-teacher') selectTeacher(id);
+    if (type === 'select-course') selectCourse(id);
+    if (type === 'select-class') selectClass(id);
+    if (type === 'select-schedule') selectSchedule(id);
+    if (type === 'select-curriculum') selectCurriculum(id);
+    if (type === 'select-question') selectQuestion(id);
+
+    if (type === 'student-clear-form') clearForm('form[data-edit="student"]');
+    if (type === 'teacher-clear-form') clearForm('form[data-edit="teacher"]');
+    if (type === 'course-clear-form') clearForm('form[data-edit="course"]');
+    if (type === 'class-clear-form') clearForm('form[data-edit="class"]');
+    if (type === 'schedule-clear-form') clearForm('form[data-edit="schedule"]');
+    if (type === 'curriculum-clear-form') clearForm('form[data-edit="curriculum"]');
+    if (type === 'question-clear-form') clearForm('form[data-edit="question"]');
+  });
+
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest('[data-create], [data-edit]');
+    if (!form) return;
+
+    e.preventDefault();
+    var data = Object.fromEntries(new FormData(form).entries());
+
+    if (form.dataset.create === 'exam') {
+      mutate('/api/v1/admin/exams', 'POST', {
+        code: data.code, name: data.name, examPeriodId: Number(data.examPeriodId), totalQuestions: Number(data.totalQuestions), durationMinutes: Number(data.durationMinutes), status: data.status || 'nhap', type: data.type || 'sat_hach'
+      }).then(function () { form.reset(); });
+      return;
+    }
+
+    if (form.dataset.edit === 'student') {
+      var studentPayload = { username: data.username || null, email: data.email, phoneNumber: data.phoneNumber || null, password: data.password || null, fullName: data.fullName, dateOfBirth: data.dateOfBirth || null, gender: data.gender || null, cccd: data.cccd || null, address: data.address || null, avatarUrl: data.avatarUrl || null, status: data.status || 'hoat_dong' };
+      if (data.id) mutate('/api/v1/admin/students/' + data.id, 'PUT', studentPayload); else mutate('/api/v1/admin/students', 'POST', studentPayload);
+      return;
+    }
+
+    if (form.dataset.edit === 'teacher') {
+      var teacherPayload = { nguoiDungId: Number(data.userId), maGiaoVien: data.code, hoTen: data.fullName, ngaySinh: data.dateOfBirth || null, gioiTinh: data.gender || null, cccd: data.cccd || null, soGplx: data.licenseNumber || null, hangGplx: data.licenseClass || null, chuyenMon: data.specialization || null, kinhNghiemNam: data.experienceYears ? Number(data.experienceYears) : null, trangThai: data.status || 'hoat_dong' };
+      if (data.id) mutate('/api/v1/admin/v2/teachers/' + data.id, 'PUT', teacherPayload); else mutate('/api/v1/admin/v2/teachers', 'POST', teacherPayload);
+      return;
+    }
+
+    if (form.dataset.edit === 'course') {
+      var coursePayload = { code: data.code, name: data.name, description: data.description, fee: Number(data.fee || 0), duration: data.duration ? Number(data.duration) : null, status: data.status || 'dang_mo' };
+      if (data.id) mutate('/api/v1/admin/courses/' + data.id, 'PUT', coursePayload); else mutate('/api/v1/admin/courses', 'POST', coursePayload);
+      return;
+    }
+
+    if (form.dataset.edit === 'class') {
+      var classPayload = { courseId: Number(data.courseId), code: data.code, name: data.name, teacherId: data.teacherId ? Number(data.teacherId) : null, startDate: data.startDate || null, endDate: data.endDate || null, maxStudents: Number(data.maxStudents || 30), status: data.status || 'dang_mo' };
+      if (data.id) mutate('/api/v1/admin/classes/' + data.id, 'PUT', classPayload); else mutate('/api/v1/admin/classes', 'POST', classPayload);
+      return;
+    }
+
+    if (form.dataset.edit === 'schedule') {
+      var schedulePayloadCreate = { classId: Number(data.classId), name: data.name, type: data.type || 'ly_thuyet', teacherId: data.teacherId ? Number(data.teacherId) : null, studyDate: data.studyDate, startTime: data.startTime, endTime: data.endTime, content: data.content, room: data.room, location: data.location };
+      var schedulePayloadUpdate = { classId: Number(data.classId), name: data.name, studyDate: data.studyDate, startTime: data.startTime, endTime: data.endTime, content: data.content, room: data.room };
+      if (data.id) mutate('/api/v1/admin/schedules/' + data.id, 'PUT', schedulePayloadUpdate); else mutate('/api/v1/admin/v2/schedules', 'POST', schedulePayloadCreate);
+      return;
+    }
+
+    if (form.dataset.edit === 'curriculum') {
+      var curriculumPayload = { code: data.code, name: data.name, licenseClass: data.licenseClass, description: data.description, status: data.status || 'active' };
+      if (data.id) mutate('/api/v1/admin/v2/curriculums/' + data.id, 'PUT', curriculumPayload); else mutate('/api/v1/admin/v2/curriculums', 'POST', curriculumPayload);
+      return;
+    }
+
+    if (form.dataset.edit === 'question') {
+      var questionPayload = { topicId: Number(data.topicId), content: data.content, explanation: data.explanation || null, questionType: data.questionType || 'trac_nghiem', level: data.level || null, isCritical: String(data.isCritical) === 'true', status: data.status || 'hoat_dong' };
+      if (data.id) mutate('/api/v1/admin/questions/' + data.id, 'PUT', questionPayload); else mutate('/api/v1/admin/questions', 'POST', questionPayload);
+      return;
+    }
+  });
+
+  window.AdminUnified = { loadAll: loadAll, activate: activate };
+  document.addEventListener('DOMContentLoaded', function () {
+    activate((location.hash || '#dashboard').slice(1));
+    loadAll();
+  });
+})();
+</script>
