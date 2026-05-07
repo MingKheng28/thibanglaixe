@@ -34,6 +34,7 @@ using HeThongThiBangLai.Api.Services.Certificates;
 using HeThongThiBangLai.Api.Services.Courses;
 using HeThongThiBangLai.Api.Services.Interfaces;
 using HeThongThiBangLai.Api.Services.Payments;
+using HeThongThiBangLai.Api.Services.Admin;
 using HeThongThiBangLai.Api.Services.Questions;
 using HeThongThiBangLai.Api.Services.Topics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -161,6 +162,9 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 // Payments
 builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("ZaloPay"));
 builder.Services.AddHttpClient<IZaloPayPaymentService, ZaloPayPaymentService>();
+
+// Admin approval workflows
+builder.Services.AddScoped<IStudentApprovalService, StudentApprovalService>();
 
 // Sample exams
 builder.Services.AddScoped<ISampleExamRepository, SampleExamRepository>();

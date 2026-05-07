@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jvEiATcIc2Y=",
+  "dgSpecHash": "XKC5eSX/r3Y=",
   "success": true,
-  "projectFilePath": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
+  "projectFilePath": "c:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
   "expectedPackageFiles": [
     "D:\\nuget-packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "D:\\nuget-packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -165,8 +165,7 @@
     "D:\\nuget-packages\\system.xml.xdocument\\4.3.0\\system.xml.xdocument.4.3.0.nupkg.sha512",
     "D:\\nuget-packages\\microsoft.netcore.app.ref\\8.0.26\\microsoft.netcore.app.ref.8.0.26.nupkg.sha512",
     "D:\\nuget-packages\\microsoft.windowsdesktop.app.ref\\8.0.26\\microsoft.windowsdesktop.app.ref.8.0.26.nupkg.sha512",
-    "D:\\nuget-packages\\microsoft.aspnetcore.app.ref\\8.0.26\\microsoft.aspnetcore.app.ref.8.0.26.nupkg.sha512",
-    "D:\\nuget-packages\\microsoft.netcore.app.host.win-x64\\8.0.26\\microsoft.netcore.app.host.win-x64.8.0.26.nupkg.sha512"
+    "D:\\nuget-packages\\microsoft.aspnetcore.app.ref\\8.0.26\\microsoft.aspnetcore.app.ref.8.0.26.nupkg.sha512"
   ],
   "logs": []
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using HeThongThiBangLai.Api.Common.Responses;
 using HeThongThiBangLai.Api.Data;
 using HeThongThiBangLai.Api.Models;
+using HeThongThiBangLai.Api.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +17,12 @@ namespace HeThongThiBangLai.Api.Controllers;
 public sealed class AdminController : ControllerBase
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly IStudentApprovalService _studentApprovalService;
 
-    public AdminController(ApplicationDbContext dbContext)
+    public AdminController(ApplicationDbContext dbContext, IStudentApprovalService studentApprovalService)
     {
         _dbContext = dbContext;
+        _studentApprovalService = studentApprovalService;
     }
 
     [HttpGet("users")]
@@ -313,9 +316,20 @@ public sealed class AdminController : ControllerBase
     {
         var course = await _dbContext.khoa_hocs.FindAsync(id);
         if (course is null) return NotFound(ApiResponseFactory.Fail("Không tìm thấy khóa học"));
+
+        var hasClasses = await _dbContext.lop_hocs.AnyAsync(item => item.khoa_hoc_id == id);
+        var hasRegistrations = await _dbContext.dang_ky_khoa_hocs.AnyAsync(item => item.khoa_hoc_id == id);
+
+        if (hasClasses || hasRegistrations)
+        {
+            course.trang_thai = "da_huy";
+            await _dbContext.SaveChangesAsync();
+            return Ok(ApiResponseFactory.Success(new { id, soft_deleted = true }, "Khóa học có dữ liệu liên quan, đã chuyển sang trạng thái ngưng hoạt động"));
+        }
+
         _dbContext.khoa_hocs.Remove(course);
         await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponseFactory.Success(new { id }, "Xóa khóa học thành công"));
+        return Ok(ApiResponseFactory.Success(new { id, soft_deleted = false }, "Xóa khóa học thành công"));
     }
 
     [HttpGet("classes")]
@@ -394,9 +408,20 @@ public sealed class AdminController : ControllerBase
     {
         var entity = await _dbContext.lop_hocs.FindAsync(id);
         if (entity is null) return NotFound(ApiResponseFactory.Fail("Không tìm thấy lớp học"));
+
+        var hasSchedules = await _dbContext.buoi_hocs.AnyAsync(item => item.lop_hoc_id == id);
+        var hasStudents = await _dbContext.lop_hoc_hoc_viens.AnyAsync(item => item.lop_hoc_id == id);
+
+        if (hasSchedules || hasStudents)
+        {
+            entity.trang_thai = "da_huy";
+            await _dbContext.SaveChangesAsync();
+            return Ok(ApiResponseFactory.Success(new { id, soft_deleted = true }, "Lớp học có dữ liệu liên quan, đã chuyển sang trạng thái ngưng hoạt động"));
+        }
+
         _dbContext.lop_hocs.Remove(entity);
         await _dbContext.SaveChangesAsync();
-        return Ok(ApiResponseFactory.Success(new { id }, "Xóa lớp học thành công"));
+        return Ok(ApiResponseFactory.Success(new { id, soft_deleted = false }, "Xóa lớp học thành công"));
     }
 
     [HttpGet("schedules")]
@@ -721,6 +746,22 @@ public sealed class AdminController : ControllerBase
             .ToListAsync();
 
         return Ok(ApiResponseFactory.Success(data, "Lấy danh sách đăng ký dự thi thành công"));
+    }
+
+    [HttpGet("student-approvals/pending")]
+    public async Task<IActionResult> GetPendingStudentApprovals(CancellationToken cancellationToken)
+    {
+        var data = await _studentApprovalService.GetPendingAsync(cancellationToken);
+        return Ok(ApiResponseFactory.Success(data, "Lấy danh sách học viên chờ duyệt thành công"));
+    }
+
+    [HttpPost("student-approvals/{registrationId:long}/approve")]
+    public async Task<IActionResult> ApproveStudentRegistration(long registrationId, CancellationToken cancellationToken)
+    {
+        var result = await _studentApprovalService.ApproveAsync(registrationId, GetCurrentUserId(), cancellationToken);
+        if (result.not_found) return NotFound(ApiResponseFactory.Fail(result.message ?? "Không tìm thấy đăng ký khóa học"));
+        if (!result.success) return Conflict(ApiResponseFactory.Fail(result.message ?? "Không thể duyệt học viên"));
+        return Ok(ApiResponseFactory.Success(result, "Duyệt học viên thành công. Học viên có thể thanh toán sau."));
     }
 
     [HttpPatch("exam-registrations/{registrationId:long}/approve")]

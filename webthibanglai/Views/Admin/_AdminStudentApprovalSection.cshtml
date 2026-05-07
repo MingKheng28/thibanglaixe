@@ -1,0 +1,21 @@
+<section id="student-approvals" class="admin-section">
+    <div class="page-header">
+        <div>
+            <h1>Duyệt học viên</h1>
+            <p>Kiểm tra đăng ký khóa học, hồ sơ và lớp phù hợp trước khi duyệt. Sau khi duyệt, học viên có thể thanh toán sau.</p>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card green"><span class="stat-icon">⏳</span><div class="stat-label">Chờ duyệt</div><div id="stat-pending-student-approvals" class="stat-value">0</div><div class="stat-change">Đăng ký khóa học cần kiểm tra</div></div>
+        <div class="stat-card blue"><span class="stat-icon">🧾</span><div class="stat-label">Đủ điều kiện</div><div id="stat-approvable-student-approvals" class="stat-value">0</div><div class="stat-change">Có lớp phù hợp và hồ sơ hợp lệ</div></div>
+    </div>
+    <div class="card">
+        <div class="card-header"><div class="card-title">✅ Danh sách học viên chờ duyệt</div><span class="card-action">GET /api/v1/admin/student-approvals/pending</span></div>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>ID</th><th>Học viên</th><th>Khóa học</th><th>Lớp dự kiến</th><th>Hồ sơ</th><th>Điều kiện</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead>
+                <tbody id="student-approvals-body"></tbody>
+            </table>
+        </div>
+    </div>
+</section>

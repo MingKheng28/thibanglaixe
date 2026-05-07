@@ -22,7 +22,8 @@
     examResults: '/api/v1/admin/exam-results',
     certificates: '/api/v1/admin/certificates',
     receipts: '/api/v1/admin/receipts',
-    notifications: '/api/v1/admin/v2/notifications'
+    notifications: '/api/v1/admin/v2/notifications',
+    studentApprovals: '/api/v1/admin/student-approvals/pending'
   };
 
   var state = { data: {}, loading: false, errors: {} };
@@ -158,6 +159,19 @@
     setText('stat-approved-profiles', vi.format(approvedProfiles));
     setText('stat-approved-course-registrations', vi.format(approvedCourseRegistrations));
     setText('stat-fee-types', vi.format(asArray(d.feeTypes).length));
+
+    var pendingStudentApprovals = asArray(d.studentApprovals);
+    setText('stat-pending-student-approvals', vi.format(pendingStudentApprovals.length));
+    setText('stat-approvable-student-approvals', vi.format(pendingStudentApprovals.filter(function (x) { return Boolean(prop(x, 'can_approve', 'canApprove', false)); }).length));
+
+    rows('student-approvals-body', pendingStudentApprovals.map(function (x) {
+      var id = prop(x, 'id', 'id', '');
+      var selectedClass = prop(x, 'selected_class', 'selectedClass', {}) || {};
+      var blockers = asArray(prop(x, 'blockers', 'blockers', []));
+      var canApprove = Boolean(prop(x, 'can_approve', 'canApprove', false));
+      var profileText = vi.format(prop(x, 'approved_profile_count', 'approvedProfileCount', 0)) + '/' + vi.format(prop(x, 'profile_count', 'profileCount', 0)) + ' đã duyệt';
+      return '<tr><td class="mono">#' + id + '</td><td class="bold">' + esc(prop(x, 'student_name', 'studentName', '')) + '<br><small>' + esc(prop(x, 'student_email', 'studentEmail', '')) + '</small></td><td>' + esc(prop(x, 'course_name', 'courseName', '')) + '<br><small>' + esc(prop(x, 'course_code', 'courseCode', '')) + '</small></td><td>' + (prop(selectedClass, 'id', 'id', null) ? esc(prop(selectedClass, 'ten_lop', 'tenLop', '')) + '<br><small>' + esc(prop(selectedClass, 'ma_lop', 'maLop', '')) + '</small>' : '<span class="badge badge-red">Chưa có lớp</span>') + '</td><td>' + esc(profileText) + '</td><td>' + (canApprove ? '<span class="badge badge-green">Đủ điều kiện</span>' : '<span class="badge badge-red">' + esc(blockers.join('; ') || 'Chưa đủ điều kiện') + '</span>') + '</td><td class="mono">' + fmtDate(prop(x, 'ngay_dang_ky', 'ngayDangKy', null)) + '</td><td>' + (canApprove ? '<button class="btn" data-action="approve-student-registration" data-id="' + id + '">Duyệt</button>' : '—') + '</td></tr>';
+    }).join(''), 8, state.errors.studentApprovals);
 
     rows('users-body', asArray(d.users).map(function (x) {
       var status = prop(x, 'trang_thai', 'trangThai', '');
@@ -373,6 +387,7 @@
     if (type === 'delete-question' && confirm('Xóa câu hỏi này?')) mutate('/api/v1/admin/questions/' + id, 'DELETE');
     if (type === 'delete-curriculum' && confirm('Xóa giáo trình này?')) mutate('/api/v1/admin/v2/curriculums/' + id, 'DELETE');
 
+    if (type === 'approve-student-registration' && confirm('Duyệt học viên này và gán vào lớp phù hợp?')) mutate('/api/v1/admin/student-approvals/' + id + '/approve', 'POST');
     if (type === 'approve-course-registration') mutate('/api/v1/admin/course-registrations/' + id + '/approve', 'PATCH');
     if (type === 'approve-exam-registration') mutate('/api/v1/admin/exam-registrations/' + id + '/approve', 'PATCH');
     if (type === 'confirm-receipt') mutate('/api/v1/admin/receipts/' + id + '/confirm', 'PATCH');

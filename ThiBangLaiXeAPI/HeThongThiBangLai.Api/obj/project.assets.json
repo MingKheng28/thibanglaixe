@@ -8994,14 +8994,14 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
+      "projectUniqueName": "c:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
       "projectName": "HeThongThiBangLai.Api",
-      "projectPath": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
+      "projectPath": "c:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\HeThongThiBangLai.Api.csproj",
       "packagesPath": "D:\\nuget-packages",
-      "outputPath": "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\obj\\",
+      "outputPath": "c:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\HeThongThiBangLai.Api\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\NuGet.Config",
+        "c:\\moto_license_project\\ThiBangLaiXe\\ThiBangLaiXeAPI\\NuGet.Config",
         "C:\\Users\\onoso\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\DevExpress 24.1.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
@@ -9029,7 +9029,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net8.0": {
@@ -9097,10 +9097,6 @@
             "version": "[8.0.26, 8.0.26]"
           },
           {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.26, 8.0.26]"
-          },
-          {
             "name": "Microsoft.NETCore.App.Ref",
             "version": "[8.0.26, 8.0.26]"
           },
@@ -9117,7 +9113,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
