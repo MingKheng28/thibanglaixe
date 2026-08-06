@@ -1848,4 +1848,3 @@ c:\moto_license_project\ThiBangLaiXe\.verify\backend-student-approval-section\He
 c:\moto_license_project\ThiBangLaiXe\.verify\backend-student-approval-section\HeThongThiBangLai.Api.runtimeconfig.json
 c:\moto_license_project\ThiBangLaiXe\.verify\backend-student-approval-section\HeThongThiBangLai.Api.dll
 c:\moto_license_project\ThiBangLaiXe\.verify\backend-student-approval-section\HeThongThiBangLai.Api.pdb
-c:\moto_license_project\ThiBangLaiXe\ThiBangLaiXeAPI\HeThongThiBangLai.Api\obj\Debug\net8.0\swae.build.ex.cache

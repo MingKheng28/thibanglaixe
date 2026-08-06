@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("webthibanglai")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68685804a5e331d7584a338bf114d7bcc6364dd7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a7cbe60f402ff7d107f0eee4e8adb74a416ab28")]
 [assembly: System.Reflection.AssemblyProductAttribute("webthibanglai")]
 [assembly: System.Reflection.AssemblyTitleAttribute("webthibanglai")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
